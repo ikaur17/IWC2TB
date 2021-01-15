@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="IWC2TB",
+    name="iwc2tb",
     version="0.0.1",
     author="Inderpreet Kaur",
     description="Scripts to read and analyse ARTS simulations (Radar2Tb) ",
@@ -17,7 +17,7 @@ setuptools.setup(
         "License :: GNU Affero",
         "Operating System :: OS Independent",
     ],
-    install_requires=[ "numpy", "scipy"],
+    install_requires=[ "numpy", "scipy", "matplotlib"],
     python_requires=">=3.6",
     include_package_data=True,
     package_data={
