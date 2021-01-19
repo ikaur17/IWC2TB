@@ -12,6 +12,7 @@ Can read in either one file or a list of files
 
 import scipy.io
 import numpy as np
+from iwc2tb.py_atmlab.gaussfilter import gaussfilter
 import matplotlib.pyplot as plt
 
 
@@ -70,7 +71,7 @@ class IceCube():
     @property
     def tb(self):
         """
-        brightness temperatures
+        pencil beam calculations of brightness temperatures
 
         Returns
         -------
@@ -81,6 +82,38 @@ class IceCube():
         tb = np.concatenate(tb, axis = 1)
         return np.squeeze(tb)
     
+    @property
+    def ta(self):
+        """
+        antenna weighted brightness temperatures
+
+        Returns
+        -------
+        Ta : np.array of smoothed Tb values
+
+        """
+        
+        Ta = []
+        for i in range(len(self.mat)):
+            mat = self.mat[i]
+            tb =  np.squeeze(mat["Tb"])
+            tb = tb.reshape(-1, 1)
+            lat = np.squeeze(mat["lat"])
+
+            
+                
+            lat2, i2, i1 = (np.unique(lat, return_index=True, 
+                                      return_inverse=True))
+        
+            yf = gaussfilter(lat2, tb[i2], 15/111)
+            
+            ta = yf[i1]
+            Ta.append(ta)
+        
+        Ta = np.concatenate(Ta, axis = 0)
+            
+        return Ta     
+           
     @property
     def iwp(self):
         """
@@ -127,8 +160,29 @@ class IceCube():
         
         return self.get_data('polratio')   
     
+    def tb_gaussfilter(self):
+        """
+        calculate gaussfiltering of the TB
+
+        Returns
+        -------
+        ta : smoothed Tb
+
+        """
+        
+
+        lat2, i2, i1 = np.unique(self.lat, return_index=True, return_inverse=True)
+        
+        tb = self.tb
+        tb = tb.reshape(-1, 1)
+        yf = gaussfilter(lat2, tb[i2], 15/111)
+        ta = yf[i1]
+        
+        return ta
+        
     
-    def pdf(self, bins = None, plot = True):
+    
+    def pdf(self, bins = None, plot = True, pencil_beam = False):
         """
         generates pdf of Tb from IceCube simulations
 
@@ -139,6 +193,10 @@ class IceCube():
             When None, default bins used are np.arange(100, 300, 0.5)
         plot : boolean, optional
             if true, generates a plot of the PDF. The default is True.
+        
+        pencil_beam: boolean, optional
+            when False, antenna weighted Tb are used, 
+            when True, pencil beam Tb are used
 
         Returns
         -------
@@ -146,10 +204,14 @@ class IceCube():
 
         """
         
-        tb = self.tb
         
+ #       tb = self.tb_gaussfilter()
+        if pencil_beam == True:
+            tb = self.tb
+        else:
+            tb = self.ta
 
-        bins = np.arange(100, 300, 0.5)
+        bins = np.arange(100, 275, 0.5)
         
         hist = np.histogram(tb, bins, density = True)
         
