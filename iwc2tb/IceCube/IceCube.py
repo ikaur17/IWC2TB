@@ -12,7 +12,6 @@ Can read in either one file or a list of files
 
 import scipy.io
 import numpy as np
-from iwc2tb.py_atmlab.gaussfilter import gaussfilter
 import matplotlib.pyplot as plt
 
 
@@ -33,15 +32,15 @@ class IceCube():
         """
         
         if np.isscalar(filenames):
-            print ('doing only one file')
+#            print ('doing only one file')
             filenames = [filenames]
         self.mat = []
         for file in filenames:
             self.mat.append(scipy.io.loadmat(file))
-            m = scipy.io.loadmat(file)
+#            m = scipy.io.loadmat(file)
             
-            if m["Tb"].shape[1] != m["iwp"].shape[0]:
-                raise Exception("dimensions of TB, lat, iwp not consistent ")
+            # if m["Tb"].shape[1] != m["iwp"].shape[0]:
+            #     raise Exception("dimensions of TB, lat, iwp not consistent ")
             
         
     def get_data(self, parameter):    
@@ -58,20 +57,27 @@ class IceCube():
 
         """
         
-        if parameter not in ["Tb", "iwp", "lat"]:
-            raise Exception("parameter should be one of Tb, iwp or lat")
-        
-        
-        data = []
-        for i in range(len(self.mat)):
-            mat = self.mat[i]
-            data.append(mat[parameter])
-        return data
+        if parameter not in ["Tb", "iwp", "lat", "lon", "pos" ,
+                              "stype", "z0", "p0", "t0", "rwp", "wvp"]:
+            raise Exception("parameter should be one of [Tb, iwp, lat, lon, pos, stype, z0, p0, t0, rwp, wvp]")
+            
+        data = []    
+        if parameter == "Tb":
+            for i in range(len(self.mat)):
+                mat = self.mat[i]
+                data.append(mat["Tb"])
+            return data
+        else:
+            for i in range(len(self.mat)):
+                mat = self.mat[i]
+                data.append(mat["B"][parameter][0,0])
+            return data
+
     
     @property
     def tb(self):
         """
-        pencil beam calculations of brightness temperatures
+        brightness temperatures
 
         Returns
         -------
@@ -82,38 +88,6 @@ class IceCube():
         tb = np.concatenate(tb, axis = 1)
         return np.squeeze(tb)
     
-    @property
-    def ta(self):
-        """
-        antenna weighted brightness temperatures
-
-        Returns
-        -------
-        Ta : np.array of smoothed Tb values
-
-        """
-        
-        Ta = []
-        for i in range(len(self.mat)):
-            mat = self.mat[i]
-            tb =  np.squeeze(mat["Tb"])
-            tb = tb.reshape(-1, 1)
-            lat = np.squeeze(mat["lat"])
-
-            
-                
-            lat2, i2, i1 = (np.unique(lat, return_index=True, 
-                                      return_inverse=True))
-        
-            yf = gaussfilter(lat2, tb[i2], 15/111)
-            
-            ta = yf[i1]
-            Ta.append(ta)
-        
-        Ta = np.concatenate(Ta, axis = 0)
-            
-        return Ta     
-           
     @property
     def iwp(self):
         """
@@ -128,6 +102,22 @@ class IceCube():
         iwp = self.get_data('iwp')
         iwp = np.concatenate(iwp, axis = 0)
         return np.concatenate(iwp)
+    
+    
+    @property
+    def wvp(self):
+        """
+        water vapour path
+
+        Returns
+        -------
+        np.array of IWP values
+
+        """
+        
+        wvp = self.get_data('wvp')
+        wvp = np.concatenate(wvp, axis = 0)
+        return np.concatenate(wvp)
     
 
     @property
@@ -160,29 +150,8 @@ class IceCube():
         
         return self.get_data('polratio')   
     
-    def tb_gaussfilter(self):
-        """
-        calculate gaussfiltering of the TB
-
-        Returns
-        -------
-        ta : smoothed Tb
-
-        """
-        
-
-        lat2, i2, i1 = np.unique(self.lat, return_index=True, return_inverse=True)
-        
-        tb = self.tb
-        tb = tb.reshape(-1, 1)
-        yf = gaussfilter(lat2, tb[i2], 15/111)
-        ta = yf[i1]
-        
-        return ta
-        
     
-    
-    def pdf(self, bins = None, plot = True, pencil_beam = False):
+    def pdf(self, bins = None, plot = True):
         """
         generates pdf of Tb from IceCube simulations
 
@@ -193,10 +162,6 @@ class IceCube():
             When None, default bins used are np.arange(100, 300, 0.5)
         plot : boolean, optional
             if true, generates a plot of the PDF. The default is True.
-        
-        pencil_beam: boolean, optional
-            when False, antenna weighted Tb are used, 
-            when True, pencil beam Tb are used
 
         Returns
         -------
@@ -204,14 +169,10 @@ class IceCube():
 
         """
         
+        tb = self.tb
         
- #       tb = self.tb_gaussfilter()
-        if pencil_beam == True:
-            tb = self.tb
-        else:
-            tb = self.ta
 
-        bins = np.arange(100, 275, 0.5)
+        bins = np.arange(100, 300, 0.5)
         
         hist = np.histogram(tb, bins, density = True)
         
