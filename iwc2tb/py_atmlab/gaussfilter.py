@@ -10,8 +10,8 @@ python version of *gaussfilter* matlab function available as part of atmlab pack
 """
 
 import numpy as np
-from fwhm2si import fwhm2si
-from gauss import gauss
+from iwc2tb.py_atmlab.fwhm2si import fwhm2si
+from iwc2tb.py_atmlab.gauss import gauss
 
 
 def issorted(x):
