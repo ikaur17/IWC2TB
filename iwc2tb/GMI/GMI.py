@@ -54,7 +54,9 @@ class GMI():
         inputfiles = []
         for file in self.files:
             zfile = file.replace(".mat", ".zip")
-            zfile = zfile.replace("GMI_m65", "DARDAR_ERA_m65")
+#           zfile = zfile.replace("GMI_m65", "DARDAR_ERA_m65")
+            fname = os.path.basename(zfile)
+            zfile = os.path.join("/home/inderpreet/Dendrite/Projects/IWP/GMI", "DARDAR_ERA_m65_p65_zfield", fname)
 
             inputfiles.append(zfile)
         return inputfiles    
@@ -65,9 +67,15 @@ class GMI():
         inputfiles = self.get_inputfiles()        
         for i, infile in enumerate(inputfiles):
 
-            with zipfile.ZipFile(infile, 'r') as zip_ref:
+            with zipfile.ZipFile(infile, 'r') as zf:
+                for file in zf.namelist():
 
-                zip_ref.extractall("/home/inderpreet/data/temp")
+                    if file.endswith("lsm.xml"):
+                        zf.extract(file, "/home/inderpreet/data/temp")
+                    if file.endswith("lat_grid.xml"):    
+                        zf.extract(file, "/home/inderpreet/data/temp")
+
+                #zip_ref.extractall("/home/inderpreet/data/temp")
                 
                 
             lsm0 = np.squeeze(xml.load("/home/inderpreet/data/temp/lsm.xml"))
@@ -75,7 +83,7 @@ class GMI():
             
             for f in glob.glob("/home/inderpreet/data/temp/*.xml"):
                 os.remove(f)
-            
+                
             mat = self.mat[i]
             stype = np.squeeze(mat["B"]["stype"][0,0])
             lat   = np.squeeze(mat["B"]["lat"][0, 0])
@@ -96,8 +104,38 @@ class GMI():
             stype[ix] = 3
 
             data.append(stype)
+                
             
-        return data        
+ #            mat = self.mat[i]
+ #            stype = np.squeeze(mat["B"]["stype"][0,0])
+ #            lat   = np.squeeze(mat["B"]["lat"][0, 0])
+
+ #            # reassign surface type to ice and snow
+ #            iice = stype == 2
+            
+ #            f     = interpolate.interp1d(lat0, lsm0, kind = "nearest")
+
+                    
+ #            lsm   = f(lat[iice])
+
+ #            iland         = lsm > 0.5
+ #            isea          = lsm <= 0.5
+        
+        
+ #            lsm[iland]  = 1
+ #            lsm[isea]   = 0            
+               
+ #            ix = np.where(lsm == 0)[0] 
+ # #           print (stype[iice].shape, ix.shape, np.sum(ix))     
+            
+ #            stype[iice][ix] = 3
+            
+ #            print(stype.max())
+
+ #            data.append(stype)
+            
+            
+        return data     
         
     def get_data(self, parameter):    
         """
@@ -225,6 +263,24 @@ class GMI():
             return np.array(lat).ravel()
         else:
             return np.concatenate(lat, axis = 0)
+        
+    @property
+    def lon(self):
+        """
+        latitudes
+
+        Returns
+        -------
+        np.array of lat values
+
+        """
+        
+        lon = self.get_data('lon')
+        if len(lon)==1:
+            return np.array(lon).ravel()
+        else:
+            return np.concatenate(lon, axis = 0)
+        
 
           
     @property
@@ -237,7 +293,7 @@ class GMI():
         np.array of lat values
 
         """
-        stype = self.get_data('stype')
+        stype = self.get_lsm()
         if len(stype) == 1:
             return np.array(stype).ravel()
         else:
