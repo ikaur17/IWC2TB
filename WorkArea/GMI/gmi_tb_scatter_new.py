@@ -22,9 +22,12 @@ from iwc2tb.GMI.GMI_SatData import GMI_Sat
 import random
 import matplotlib.pyplot as plt
 from iwc2tb.common.add_gaussian_noise import add_gaussian_noise
+from iwc2tb.py_atmlab.gaussfilter import filter_stype
 from mpl_toolkits.basemap import Basemap
 from matplotlib.colors import LogNorm
-plt.rcParams.update({'font.size': 50})
+import scipy
+from matplotlib import ticker, cm
+plt.rcParams.update({'font.size': 30})
 
 
 
@@ -53,7 +56,7 @@ def get_Ta(matfiles,  latlims = None, lsm = None ):
     lat_all : np.array [n], the latitudes where Ta_all are defined
 
     """
-     
+    nedt = np.array([0.70, 0.65, 0.47, 0.56 ])
     Ta_all  = []
 
 #    for i in range(4):
@@ -69,30 +72,16 @@ def get_Ta(matfiles,  latlims = None, lsm = None ):
             lat_all.append(gmi.lat)
             lon_all.append(gmi.lon)
             
-            lsm = apply_gaussfilter(gmi.lat, gmi.stype, 6/111)
 
-            
-            # re-classfiy sea-ice classified as snow
-            ix = np.where(np.logical_and(lsm[:, 0] == 2, gmi.stype == 3))
-            lsm[ix, 0] == 0
-            
-            # re-classfiy sea-ice classified as land
-            ix = np.where(np.logical_and(lsm[:, 0] == 1, gmi.stype == 3))
-            lsm[ix, 0] == 0
-            
-            # re-classify snow classified as water
-            ix = np.where(np.logical_and(lsm[:, 0] == 0, gmi.stype == 2))
-            lsm[ix, 0] == 1
-                
-            lsm = np.squeeze(lsm)
-            print (lsm.shape)
-            stype_all.append(lsm)
+            lsm_new = filter_stype(gmi.lat, gmi.stype )
+            stype_all.append(lsm_new)
             
             Ta = []
            
             for i in range(4):
             # calculate antenna weighted values
-                ta = apply_gaussfilter(gmi.lat, gmi.tb[:, i], 6/111)# 7km smoothing
+                ta = apply_gaussfilter(gmi.lat, gmi.tb[:, i], 6/111)# 6km smoothing
+                ta = add_gaussian_noise(ta, [nedt[i]])
     
                 Ta.append(ta)  
 
@@ -105,26 +94,34 @@ def get_Ta(matfiles,  latlims = None, lsm = None ):
     
     return np.vstack(Ta_all), np.concatenate(lat_all), np.concatenate(lon_all), np.concatenate(stype_all)
 
-
-#%%
-#plot PDFs for all 4 channels   
+    
+#%%plot PDFs for all 4 channels   
 def plot_pdf_gmi(Ta, Tb, bins= None, figname = "distribution_gmi.pdf"):
     
     if bins is None:
         bins = np.arange(100, 310, 2)
         
-    fig, axs = plt.subplots(2,2, figsize = [30, 20])
+    fig, axs = plt.subplots(2,1, figsize = [20, 20])
     fig.tight_layout(pad=3.0)
     
     for i, ax in enumerate(fig.axes):
-    
-        hist_a = np.histogram(Ta[:, i],  bins, density = True)      
-        hist_b = np.histogram(Tb[:, i],  bins, density = True)  
         
-        ax.plot(bins[:-1], hist_b[0], label =  'observed', linewidth  = 2)       
-        ax.plot(bins[:-1], hist_a[0], label =  "simulated", linewidth = 2 )
+        if i == 1:
+            i = 2
+    
+        hist_a = np.histogram(Ta[::3, i],  bins, density = True)      
+        hist_b = np.histogram(Tb[::6, i],  bins, density = True)  
+        
+        ax.plot(bins[:-1], hist_b[0],'b', label =  freq[i]+ ' obs', linewidth = 2, alpha = 0.5)       
+        ax.plot(bins[:-1], hist_a[0],'b--', label =  freq[i] + ' sim', linewidth = 2, alpha = 0.5)
+        
+        hist_a = np.histogram(Ta[::3, i+1],  bins, density = True)      
+        hist_b = np.histogram(Tb[::6, i+1],  bins, density = True)  
+        
+        ax.plot(bins[:-1], hist_b[0], 'r', label =  freq[i+1] + ' obs', linewidth = 2, alpha = 0.5)       
+        ax.plot(bins[:-1], hist_a[0], 'r--', label =  freq[i+1] +  ' sim', linewidth = 2, alpha = 0.5)
 
-        ax.set_title(freq[i] + " GHz")
+#        ax.set_title(freq[i] + " GHz")
     
         ax.set_yscale('log')
         ax.set_ylabel('PDF [#/K]')
@@ -203,24 +200,32 @@ def plot_hist2d(ta, tb0, figname = "hist2d.png"):
     pd_sampled_gmi = (tb0[:, 0] - tb0[:, 1])
     ta_sampled_gmi = tb0[:, 0]
     
-    fig, ax = plt.subplots(1, 1, figsize = [20, 20])
-    
-    counts,xbins,ybins=np.histogram2d(ta_sampled, pd_sampled, bins=75)
+    fig, ax = plt.subplots(1, 1, figsize = [15, 15])
+    xbins = np.arange(100, 310, 2)
+    ybins = np.arange(-5, 60, 1)
+    # ybins1  = np.arange(-5, 5, 0.5)
+    # ybins2 = np.arange(5, 20, 0.75)
+    # ybins3 = np.arange(20, 30, 1.25)
+    # ybins4 = np.arange(30, 60, 2)
+    # ybins = np.concatenate([ybins1, ybins2, ybins3, ybins4])
+    counts, xbins, ybins=np.histogram2d(ta_sampled, pd_sampled,  
+                                        bins=(xbins, ybins))
 # make the contour plot
 
     cs = (ax.contour(counts.transpose(),extent=[xbins.min(),xbins.max(),
                 ybins.min(),ybins.max()],linewidths=3,
-                linestyles='solid', colors = 'blue'))
+                linestyles='solid', colors = 'blue', locator=ticker.LogLocator(), alpha = 0.5))
 
     
     
         
-    counts,xbins,ybins=np.histogram2d(ta_sampled_gmi, pd_sampled_gmi, bins=75)
+    counts, xbins, ybins=np.histogram2d(ta_sampled_gmi, pd_sampled_gmi,
+                                        bins=(xbins, ybins))
 # make the contour plot
 
     cs_gmi  = (ax.contour(counts.transpose(),extent=[xbins.min(),xbins.max(),
                 ybins.min(),ybins.max()],linewidths=3,
-                linestyles='solid', colors = 'red'))
+                linestyles='solid', colors = 'red',locator=ticker.LogLocator(),  alpha = 0.5))
     
     lines = [ cs.collections[0], cs_gmi.collections[0]]
 #    labels = ['CS1_neg','CS1_pos','CS2_neg','CS2_pos']
@@ -275,7 +280,7 @@ def remove_oversampling_gmi(tb, lat, lon, lsm):
     fig, ax = plt.subplots(1, 1, figsize = [20, 10])
     
     bins = np.arange(-65, 66, 1)
-    hist = np.histogram(lat_gmi.ravel(), bins, density = True) 
+    hist = np.histogram(lat.ravel(), bins, density = True) 
     
     ax.hist(lat, bins, density = True)
     
@@ -295,16 +300,15 @@ def remove_oversampling_gmi(tb, lat, lon, lsm):
         factor = 1 - 1/factors[i-1]
         
         n = np.int(icount[i] * factor) 
-        print (factor, n)
  
         iargs = np.where(ilat == i)[0]
         random.shuffle(iargs)  
         iargs_sub = iargs[n:]
         
-        tb_sub.append(tb_gmi[iargs_sub, :])
-        lat_sub.append(lat_gmi[iargs_sub])
-        lon_sub.append(lon_gmi[iargs_sub])
-        lsm_sub.append(lsm_gmi[iargs_sub])
+        tb_sub.append(tb[iargs_sub, :])
+        lat_sub.append(lat[iargs_sub])
+        lon_sub.append(lon[iargs_sub])
+        lsm_sub.append(lsm[iargs_sub])
         
    
     
@@ -352,15 +356,99 @@ def plot_locations_map(lat0, lon0, z = None):
     m.shadedrelief(scale = 0.1)
 
     lon0 = lon0 % 360
-    cs = m.scatter(lon0, lat0, latlon = True, cmap = "PiYG", vmin = 0, vmax = 300)
+
     if z is not None:
         cs = (m.scatter(lon0, lat0, latlon = True, c = z, 
-                        cmap = "Reds", vmin = 0, vmax = 300))
+                        cmap = "tab20c"))
+        
+    else:
+        cs = m.scatter(lon0, lat0, latlon = True, cmap = "PiYG", vmin = 0, vmax = 300)
     plt.colorbar(cs)
     plt.show()  
 #    plt.savefig('try.png', bbox_inches = 'tight')        
-            
+
 #%%
+def call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims = None, stype_sim = None, stype_gmi = None, 
+                figname = None):
+
+        
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    
+#    ta, lat, lon, stype  = get_Ta(matfiles, latlims, lsm = None)
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+#    ta1 = swap_gmi_183(ta1)
+
+#    plot_hist2d(ta1, tb0, figname) 
+
+    plot_hist(ta1, tb0, figname)
+#%%
+def plot_hist(ta, tb, figname = "contour2d.png"):
+    from matplotlib import ticker
+    
+    fig, ax = plt.subplots(1, 1, figsize = [12, 12])
+    
+    xdat = ta[:, 0]
+    ydat = ta[:, 0] -  ta[:, 1]
+    
+#    xyrange = [[xdat.min()-5, xdat.max()+5],[ydat.min()-5, ydat.max()+ 5]] # data range
+    xyrange = [[100, 300], [-5, 60]] # data range
+  
+    bins = [100, 65] # number of bins
+    thresh = 1/xdat.shape[0] * 2  #density threshold
+    
+    
+    # histogram the data
+    hh, locx, locy = np.histogram2d(ta[:, 0], ta[:, 0] - ta[:, 1], 
+                                    range=xyrange, bins=bins, density = True)
+    posx = np.digitize(ta[:, 0], locx)
+    posy = np.digitize(ta[:, 0] - ta[:, 1], locy)
+    xdat = ta[:, 0]
+    ydat = ta[:, 0] - ta[:, 1]
+    #select points within the histogram
+    ind = (posx > 0) & (posx <= bins[0]) & (posy > 0) & (posy <= bins[1])
+    hhsub = hh[posx[ind] - 1, posy[ind] - 1] # values of the histogram where the points are
+    xdat1 = xdat[ind][hhsub < thresh] # low density points
+    ydat1 = ydat[ind][hhsub < thresh]
+    #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
+    
+    cs = ax.contour(np.flipud(hh.T),colors= 'red',
+                    extent=np.array(xyrange).flatten(), 
+                locator= ticker.LogLocator(), origin='upper')
+#    plt.colorbar()   
+    ax.plot(xdat1, ydat1, '.',color='red', alpha = 0.2)
+    
+    hh, locx, locy = np.histogram2d(tb[:, 0], tb[:, 0] - tb[:, 1], 
+                                    range=xyrange, bins=bins, density = True)
+    posx = np.digitize(tb[:, 0], locx)
+    posy = np.digitize(tb[:, 0] - tb[:, 1], locy)
+    xdat = tb[:, 0]
+    ydat = tb[:, 0] - tb[:, 1]
+    #select points within the histogram
+    ind = (posx > 0) & (posx <= bins[0]) & (posy > 0) & (posy <= bins[1])
+    hhsub = hh[posx[ind] - 1, posy[ind] - 1] # values of the histogram where the points are
+    xdat1 = xdat[ind][hhsub < thresh] # low density points
+    ydat1 = ydat[ind][hhsub < thresh]
+    #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
+    
+    cs_gmi = ax.contour(np.flipud(hh.T),colors = 'blue',
+                        extent=np.array(xyrange).flatten(), 
+                locator=ticker.LogLocator(),  origin='upper')
+ #  plt.colorbar()   
+    ax.plot(xdat1, ydat1, '.',color='blue',  alpha = 0.2)
+    lines = [ cs.collections[0], cs_gmi.collections[0]]
+#    labels = ['CS1_neg','CS1_pos','CS2_neg','CS2_pos']
+    plt.legend(lines, ["simulated", "observed"], loc = 'upper left')
+    ax.set_xlabel(" Brightness temperature 166 V [K] ")
+    ax.set_ylabel("Polarisation difference [V-H] [K]")
+
+    fig.savefig("Figures/" + figname, bbox_inches = "tight")    
+    
+#%%    
+    
 
 if __name__ == "__main__":
     
@@ -370,7 +458,7 @@ if __name__ == "__main__":
     gmifiles = glob.glob(os.path.join(inpath, "*/*.HDF5"))
     
     random.shuffle(gmifiles)
-    gmi_sat = GMI_Sat(gmifiles[:20])
+    gmi_sat = GMI_Sat(gmifiles[:10])
     
     lat_gmi = gmi_sat.lat.values
     lon_gmi = gmi_sat.lon.values
@@ -386,209 +474,188 @@ if __name__ == "__main__":
     tb_gmi, lat_gmi, lon_gmi, lsm_gmi = remove_oversampling_gmi(tb_gmi, lat_gmi, lon_gmi, lsm_gmi)
     
     # GMI simulations    
-    inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.2')  
+    inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07')  
+    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.2') 
+ 
      
-    matfiles = glob.glob(os.path.join(inpath, "2009_3*.mat"))
-    matfiles1 = glob.glob(os.path.join(inpath, "2010_*.mat"))
+    matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
+    matfiles1 = glob.glob(os.path.join(inpath1, "2010_*.mat"))
+
     
-    matfiles = matfiles + matfiles1
-    
-    ta, lat, lon, stype = get_Ta(matfiles)
+    #matfiles = matfiles + matfiles1 
+    ta, lat, lon, stype = get_Ta(matfiles[:])
+    ta = swap_gmi_183(ta)
         
     # GMI frequencies
     freq     = ["166.5V", "166.5H", "183+-3", "183+-7"]
     
 
     
-#%% Tropics
-    
-    
+#%% Tropics    
     print ("doing tropics, all")
-    
     latlims  = [0, 30]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = None))
+    lsm = None    
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, lsm, lsm, 
+                figname = "hist2d_gmi_tropics_all.png")
+ 
+# higher latitudes
     
-#    ta, lat, lon, stype  = get_Ta(matfiles, latlims, lsm = None)
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = None)
-    
-    ta1 = swap_gmi_183(ta1)
-    
-   
+    print ("doing 30-45, all")    
+    latlims  = [30, 45]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, lsm, lsm,  
+                figname = "hist2d_gmi_30-45_all.png")
 
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_tropics_all.png")
     
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_tropics_all.png")
+    print ("doing 45-60, all")
     
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_tropics_all.png")
-   
-
-#%% higher latitudes
-    
-    print ("doing high lats, all")
-    
-    latlims  = [0, 65]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = None))
-    
-#    ta, lat, lon  = get_Ta(matfiles, latlims, lsm = None)
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = None)
-    
-    ta1 = swap_gmi_183(ta1)
-
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_highlat_all.png")
-    
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_highlat_all.png")
-    
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_highlat_all.png")
+    latlims  = [45, 65]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, lsm, lsm, 
+                figname = "hist2d_gmi_45-60_all.png")
 
 
 #%% tropics land    
     print ("doing tropics, land")
+    
+    stype_gmi = [3, 4, 5, 6, 7, 13]
+    stype_sim = [1, 4, 8]
         
-    latlims  = [0, 30]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = [3, 4, 5, 6, 7, 13]))
-    
-#   ta, lat, lon  = get_Ta(matfiles, latlims, lsm = None)
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 1)
-    
-    
-    ta1 = swap_gmi_183(ta1)
+    latlims  = [0, 30]    
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_tropics_land.png")        
 
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_tropics_land.png")
-    
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_tropics_land.png")    
-    
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_tropics_land.png")
-
-#%% higher latitudes land
+# higher latitudes land
     
     print ("doing high lats, land")
     
-    latlims  = [30, 65]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = [3, 4, 5, 6, 7]))
+    latlims  = [30, 45]    
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_30-45_land.png")
     
-#    ta, lat, lon  = get_Ta(matfiles, latlims, lsm = 1)
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 1)    
+    print ("doing high lats, land")
     
-    ta1 = swap_gmi_183(ta1)
-
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_highlat_land.png")
-    
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_highlat_land.png")
-    plot_hist2d(ta1, tb0,  figname = "hist2d_gmi_highlat_land.png")
-
+    latlims  = [45, 65]    
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_45-60_land.png")
     
 #%% higher latitudes sea
     
     print ("doing high lats, sea")
     
-    latlims  = [30, 65]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = 1))
+    stype_gmi = [1, 12]
+    stype_sim = 0
     
-    #ta, lat, lon  = get_Ta(matfiles, latlims, lsm = 0)
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 0)    
+    latlims  = [30, 45]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_30-45_sea.png")
     
-    ta1 = swap_gmi_183(ta1)
-
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_highlat_sea.png")
+ 
+    print ("doing high lats, sea")
     
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_highlat_sea.png")
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_highlat_sea.png")
-   
+    latlims  = [45, 65]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_45-60_sea.png")        
     
-    
-    #%% tropics sea
+    # tropics sea
     
     print ("doing tropics, sea")
 
     latlims  = [0, 30]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims, lsm = 1))
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi,  
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_tropics_sea.png")  
     
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 0)
-    
-    ta1 = swap_gmi_183(ta1)
-    
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_tropics_sea.png")
-    
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_tropics_sea.png") 
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_tropics_sea.png")
-
     
 #%% higher latitudes sea-ice
     
     print ("highlats, sea-ice")
     
+    stype_gmi = [2,14]
+    stype_sim = [3,6]
+    
     latlims  = [45, 65]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims , lsm = 2))
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_highlat_sea-ice.png") 
     
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 3)
-    
-    ta1 = swap_gmi_183(ta1)
-
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_highlat_seaice.png")
-    
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_highlat_seaice.png")
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_highlat_sea-ice.png")
-
 #%%
     print ("highlats, snow")
-    latlims  = [30, 65]
-        
-    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
-                                      tb_gmi[::6, :], lsm_gmi[::6],
-                                      latlims , lsm = [8, 9, 10, 11]))
+    stype_gmi = [8, 9, 10, 11]
+    stype_sim = [2, 5, 7, 9]
     
-    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, lsm = 2)
-    ta1 = swap_gmi_183(ta1)
-
-#    plot_scatter(ta, tb0, freq, figname = "scatter_gmi_highlat_snow.png")
+    latlims  = [30, 45]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_30-45_snow.png")           
     
-#    plot_pdf_gmi(ta, tb0, figname = "pdf_gmi_highlat_snow.png")    
-    plot_hist2d(ta1, tb0, figname = "hist2d_gmi_highlat_snow.png")
-          
+    print ("highlats, snow")
+    latlims  = [45, 65]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_45-60_snow.png")  
 
 #%%
-    
-    
-    m1 = tb0[:, 0] < 300
-    m2 = tb0[:, 0] - tb0[:, 1] > 0
-    
-    m = np.logical_and(m1, m2)
-    
-    plot_locations_map(lat0[m], lon0[m])
+
+    plot_pdf_gmi(ta, tb_gmi, bins= None, figname = "distribution_gmi.pdf")
+
+#%%     
+    latlims = [0, 65]
     
 
+    stype_sim = None
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)   
     
+    fig, ax = plt.subplots(1, 1, figsize = [15, 10])
     
-#%%
+    bins = np.arange(-5, 50, 0.2)
+    hist = np.histogram(ta1[:, 0] - ta1[:, 1], bins, density = True) 
+    ax.step(hist[1][:-1], hist[0], 'r', label = "simulated")    
+    hist = np.histogram(tb_gmi[::6, 0] - tb_gmi[::6, 1], bins, density = True) 
+    ax.step(hist[1][:-1], hist[0], 'b', label = "observed")    
+    ax.legend()   
+    ax.set_yscale('log')
+    ax.set_xlabel("Polarisation difference 166 GHz [V-H]")
+    ax.set_ylabel("PDF [#/K]")
+    fig.savefig("Figures/PD_PDF.pdf", bbox_inches = "tight")
     
-    m1 = ta1[:, 0] > 200
-    m2 = ta1[:, 0] - ta1[:, 1] > 15
-    
-    m = np.logical_and(m1, m2)
 
+#%%  
+    latlims = [45, 65]
+    stype_sim = [8, 9, 10, 11]
+    ta1, lat1, lon1 = filter_gmi_sat(lat_gmi, lon_gmi, tb_gmi, lsm_gmi, latlims, stype_sim)      
+    m1 = ta1[:, 0] > 183
+    m2 = ta1[:, 0] - ta1[:, 1] > 20
+    m = np.logical_and(m1, m2)
     
     plot_locations_map(lat1[m], lon1[m])
+    
+
+    fig, ax = plt.subplots(1, 1, figsize = [8,8])
+    bins = np.arange(-5, 40, 1)
+    ax.hist(ta1[:, 0] - ta1[:, 1], bins, density = True, histtype = 'step')
+    
+    
+    
+#%%
+    latlims = [45, 65]
+    stype_sim = [2, 5, 7, 9]
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)    
+    m1 = ta1[:, 0] > 280
+    m2 = ta1[:, 0] - ta1[:, 1] > 0
+    
+    m = np.logical_and(m1, m2)
+
+    ax.hist(ta1[:, 0] - ta1[:, 1], bins, density = True,histtype = 'step')
+    ax.set_yscale('log')
+    plot_locations_map(lat1[m], lon1[m])
+    
 
     
 #%%
@@ -645,6 +712,12 @@ mu, sigma = 1.2, 1
 X = stats.truncnorm(
     (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
 N = stats.norm(loc=mu, scale=sigma)    
+
+
+#%%
+    #histogram definition
+
+
 
     
     
