@@ -90,3 +90,81 @@ def gaussfilter(x,y,xw):
       yf[i,:] = np.sum(y[ind,:] * np.tile(w, (1, np.shape(y)[1])).T) / np.sum(w)
       
     return yf
+
+from mpl_toolkits.basemap import Basemap
+from matplotlib.colors import LogNorm
+import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 50})
+
+def filter_stype(x, y):
+    
+    yf = y.copy()
+    
+    for i in range(len(x)):    
+#    for i in range(1000, 3000) :        
+        d       = abs( x - x[i] );
+        ind     = np.where( d < 0.35)[0]
+        
+        icounts  = np.bincount(y[ind])
+
+        
+        inew = np.argmax(icounts)
+        
+        if inew != y[i]:
+            
+            yf[i] = check_y(y[i], inew)
+            
+        if inew == y[i]:
+            
+            if len(icounts) >= 2:
+                isort = np.argsort(icounts)
+                
+                inew = icounts[isort[-2]]
+                
+                # if len(icounts) == 2:    
+                #     if icounts[0] != 0 and icounts[1] != 0:
+                #         print (i, icounts, np.argmax(icounts), y[i], inew/np.sum(icounts)) 
+                        
+                
+                if inew/np.sum(icounts) > 0.33:
+                    
+                    inew = isort[-2]
+                    
+                    yf[i] = check_y(y[i], inew)
+                    
+    return yf                   
+                    
+
+def check_y(y, inew):
+    
+    yf = 0
+    
+    if y == 0 and inew == 1: yf = 4    
+    if y == 0 and inew == 2: yf = 5
+    if y == 0 and inew == 3: yf = 6
+    
+    if y == 1 and inew == 0: yf = 4    
+    if y == 1 and inew == 2: yf = 7                          
+    if y == 1 and inew == 3: yf = 8
+    
+    if y == 2 and inew == 0: yf = 5
+    if y == 2 and inew == 1: yf = 7
+    if y == 2 and inew == 3: yf = 9
+
+    if y == 3 and inew == 0: yf = 6
+    if y == 3 and inew == 1: yf = 8
+    if y == 3 and inew == 2: yf = 9
+            
+    return yf      
+            
+            
+            
+            
+        
+   
+        
+        
+        
+        
+    
+        
