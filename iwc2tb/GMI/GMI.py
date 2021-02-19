@@ -14,15 +14,13 @@ import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
 from iwc2tb.py_atmlab.apply_gaussfilter import apply_gaussfilter
-import era2dardar.utils.get_dardar_inputfile as get_dardar
-import shutil
 import zipfile
 from typhon.arts import xml
-import xarray
 from scipy import interpolate
 import os
 import glob
 from iwc2tb.common.add_gaussian_noise import add_gaussian_noise
+from iwc2tb.py_atmlab.gaussfilter import filter_stype
 
 class GMI():
       
@@ -50,6 +48,14 @@ class GMI():
             
 
     def get_inputfiles(self):
+        """
+        Generates the names of input DARDAR-ERA zipfiles
+
+        Returns
+        -------
+        list containing DARDAR-ERA zip files
+
+        """
         
         inputfiles = []
         for file in self.files:
@@ -62,6 +68,25 @@ class GMI():
         return inputfiles    
       
     def get_lsm(self):  
+        """
+        reassigns the surface types
+
+        Returns
+        -------
+        data : the reclassfied surface types.
+        
+        0 - water
+        1 - land
+        2 - snow
+        3 - sea-ice
+        4 - coastline
+        5 - snow/water boundary
+        6 - water/sea-ice boundary
+        7 - snow/land boundary
+        8 - land/sea-ice boundary
+        9 - snow/sea-ice boundary        
+
+        """
 
         data = []
         inputfiles = self.get_inputfiles()        
@@ -74,9 +99,7 @@ class GMI():
                         zf.extract(file, "/home/inderpreet/data/temp")
                     if file.endswith("lat_grid.xml"):    
                         zf.extract(file, "/home/inderpreet/data/temp")
-
-                #zip_ref.extractall("/home/inderpreet/data/temp")
-                
+               
                 
             lsm0 = np.squeeze(xml.load("/home/inderpreet/data/temp/lsm.xml"))
             lat0 = np.squeeze(xml.load("/home/inderpreet/data/temp/lat_grid.xml"))
@@ -88,9 +111,7 @@ class GMI():
             stype = np.squeeze(mat["B"]["stype"][0,0])
             lat   = np.squeeze(mat["B"]["lat"][0, 0])
 
-            f     = interpolate.interp1d(lat0, lsm0, kind = "nearest")
-
-                    
+            f     = interpolate.interp1d(lat0, lsm0, kind = "nearest")                    
             lsm   = f(lat)
 
             iland         = lsm > 0.5
@@ -99,42 +120,16 @@ class GMI():
         
             lsm[iland]  = 1
             lsm[isea]   = 0            
-               
+            
+            # reassign sea-ice to stype = 3
             ix = (lsm == 0) & (stype == 2)              
             stype[ix] = 3
+            
+            # reassign stype on land/ocean/snow/ice boundaries
+            stype_all = filter_stype(lat, stype )
 
-            data.append(stype)
-                
-            
- #            mat = self.mat[i]
- #            stype = np.squeeze(mat["B"]["stype"][0,0])
- #            lat   = np.squeeze(mat["B"]["lat"][0, 0])
+            data.append(stype_all)
 
- #            # reassign surface type to ice and snow
- #            iice = stype == 2
-            
- #            f     = interpolate.interp1d(lat0, lsm0, kind = "nearest")
-
-                    
- #            lsm   = f(lat[iice])
-
- #            iland         = lsm > 0.5
- #            isea          = lsm <= 0.5
-        
-        
- #            lsm[iland]  = 1
- #            lsm[isea]   = 0            
-               
- #            ix = np.where(lsm == 0)[0] 
- # #           print (stype[iice].shape, ix.shape, np.sum(ix))     
-            
- #            stype[iice][ix] = 3
-            
- #            print(stype.max())
-
- #            data.append(stype)
-            
-            
         return data     
         
     def get_data(self, parameter):    
@@ -151,7 +146,7 @@ class GMI():
 
         """
         
-        if parameter not in ["Tb", "iwp", "lat", "lon", "pos" ,
+        if parameter not in ["Tb", "Ta", "iwp", "lat", "lon", "pos" ,
                               "stype", "z0", "p0", "t0", "rwp", "wvp"]:
             raise ValueError("parameter should be one of [Tb, iwp, lat, lon, pos, stype, z0, p0, t0, rwp, wvp]")
             
@@ -159,11 +154,32 @@ class GMI():
         if parameter == "Tb":
             for i in range(len(self.mat)):
                 mat = self.mat[i]
-                tb_noise = add_gaussian_noise(mat["Tb"], self.nedt)
-                data.append(tb_noise)
+                tb  = mat["Tb"]
+#                tb_noise = add_gaussian_noise(mat["Tb"], self.nedt)
+                data.append(tb)
             return data
+        
+        elif parameter == "Ta":
+            for i in range(len(self.mat)):
+                mat = self.mat[i]
+                tb  = mat["Tb"]
+                lat = mat["B"]["lat"][0, 0]
+                ta = GMI.get_ta(tb, lat)
+                data.append(ta)
+            return data
+        
         elif parameter == "stype":
             return self.get_lsm()
+        
+        elif parameter in ["iwp", "z0", "t0", "rwp", "wvp"]:
+             for i in range(len(self.mat)):
+                mat = self.mat[i]
+                var = mat["B"][parameter][0,0]
+                lat = mat["B"]["lat"][0, 0]
+                var = apply_gaussfilter(lat, var, 6/111)# 6km smoothing
+                data.append(var)    
+             return data  
+         
         else:
             for i in range(len(self.mat)):
                 mat = self.mat[i]
@@ -197,9 +213,32 @@ class GMI():
                 mat = self.mat[i]
                 data.append(mat["O"][parameter][0,0])
         return data                      
-         
+    
+    @staticmethod   
+    def get_ta(tb, lat):
+        """
+        Get antenna weighted brightness temperature values
         
+        Parameters
+        ----------
+        tb  : brightness temperatures
+        lat : latitudes of tb values
+    
+        Returns
+        -------
+        Ta: np.array [n x 4], antenna weighted TB for 4 GMI channels
+    
+        """
 
+
+        Ta = []
+        for i in range(tb.shape[1]):
+            ta = apply_gaussfilter(lat, tb[:, i], 6/111)# 6km smoothing
+            Ta.append(ta) 
+                    
+        Ta = np.concatenate(Ta, axis = 1) 
+        return Ta  
+    
     
     @property
     def tb(self):
@@ -214,6 +253,39 @@ class GMI():
         tb = self.get_data('Tb')
         tb = np.concatenate(tb, axis = 0)
         return np.squeeze(tb)
+
+    @property
+    def ta(self):
+        """
+        antenna weighted brightness temperatures
+
+        Returns
+        -------
+        np.array of TB values
+
+        """
+        ta = self.get_data('Ta')
+        ta = np.concatenate(ta, axis = 0)
+        return np.squeeze(ta)
+
+    @property
+    def ta_noise(self):
+        """
+        antenna weighted brightness temperatures with gaussian noise
+
+        Returns
+        -------
+        np.array of TB values
+
+        """
+        nedt = np.array([0.70, 0.65, 0.47, 0.56 ])
+        ta = self.get_data('Ta')
+        ta = np.squeeze(np.concatenate(ta, axis = 0))
+        
+
+        ta = add_gaussian_noise(ta, nedt)
+        
+        return ta
     
     @property
     def iwp(self):
@@ -228,7 +300,7 @@ class GMI():
         
         iwp = self.get_data('iwp')
         iwp = np.concatenate(iwp, axis = 0)
-        return iwp
+        return iwp.ravel()
     
     
     @property
@@ -244,8 +316,67 @@ class GMI():
         
         wvp = self.get_data('wvp')
         wvp = np.concatenate(wvp, axis = 0)
-        return wvp
+        return wvp.ravel()
+ 
+    @property
+    def rwp(self):
+        """
+        rain water  path
+
+        Returns
+        -------
+        np.array of RWP values
+
+        """
+        
+        rwp = self.get_data('rwp')
+        rwp = np.concatenate(rwp, axis = 0)
+        return rwp.ravel()   
+
+    @property
+    def t0(self):
+        """
+        surface temperature
+
+        Returns
+        -------
+        np.array of t0 values
+
+        """
+        
+        t0 = self.get_data('t0')
+        t0 = np.concatenate(t0, axis = 0)
+        return t0.ravel() 
+ 
+    @property
+    def p0(self):
+        """
+        surface pressure
+
+        Returns
+        -------
+        np.array of t0 values
+
+        """
+        
+        p0 = self.get_data('p0')
+        p0 = np.concatenate(p0, axis = 0)
+        return p0.ravel() 
     
+    @property
+    def z0(self):
+        """
+        surface altitude
+
+        Returns
+        -------
+        np.array of z0 values
+
+        """
+        
+        z0 = self.get_data('z0')
+        z0 = np.concatenate(z0, axis = 0)
+        return z0.ravel()     
 
     @property
     def lat(self):
@@ -262,7 +393,7 @@ class GMI():
         if len(lat)==1:
             return np.array(lat).ravel()
         else:
-            return np.concatenate(lat, axis = 0)
+            return np.concatenate(lat, axis = 0).ravel()
         
     @property
     def lon(self):
@@ -279,9 +410,8 @@ class GMI():
         if len(lon)==1:
             return np.array(lon).ravel()
         else:
-            return np.concatenate(lon, axis = 0)
-        
-
+            return np.concatenate(lon, axis = 0).ravel()
+    
           
     @property
     def stype(self):
