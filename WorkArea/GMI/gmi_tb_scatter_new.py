@@ -446,19 +446,35 @@ def plot_hist(ta, tb, figname = "contour2d.png"):
     ax.set_ylabel("Polarisation difference [V-H] [K]")
 
     fig.savefig("Figures/" + figname, bbox_inches = "tight")    
+   
+#%%
+
+def compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims):
     
+    bins = np.arange(100, 300, 1)
+    t, la, lo = filter_gmi_sat(lat, lon, ta, stype, latlims)      
+    t1, la1, lo1 = filter_gmi_sat(lat1, lon1, ta1, stype1, latlims)
+    
+    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+    ax.hist(t[:, 2], bins, density = True, label = "f07", histtype = "step")
+    ax.hist(t1[:, 2], bins, density = True, label = "DARDAR", histtype = "step")
+    ax.legend()
+    ax.set_yscale('log')
+    
+    
+
 #%%    
     
 
 if __name__ == "__main__":
     
     # GMI satellite data   
-    #inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/01/')
-    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/01/')
+    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/06/')
+    #inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/06/')
     gmifiles = glob.glob(os.path.join(inpath, "*/*.HDF5"))
     
     random.shuffle(gmifiles)
-    gmi_sat = GMI_Sat(gmifiles[:10])
+    gmi_sat = GMI_Sat(gmifiles[:20])
     
     lat_gmi = gmi_sat.lat.values
     lon_gmi = gmi_sat.lon.values
@@ -474,8 +490,8 @@ if __name__ == "__main__":
     tb_gmi, lat_gmi, lon_gmi, lsm_gmi = remove_oversampling_gmi(tb_gmi, lat_gmi, lon_gmi, lsm_gmi)
     
     # GMI simulations    
-    inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07')  
-    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.2') 
+    inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07')  
+    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3') 
  
      
     matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
@@ -485,7 +501,16 @@ if __name__ == "__main__":
     #matfiles = matfiles + matfiles1 
     ta, lat, lon, stype = get_Ta(matfiles[:])
     ta = swap_gmi_183(ta)
-        
+ 
+    ta1, lat1, lon1, stype1 = get_Ta(matfiles1[:])
+    ta1 = swap_gmi_183(ta1)
+    
+
+    
+    latlims = [4, 65]
+    compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims)
+
+       
     # GMI frequencies
     freq     = ["166.5V", "166.5H", "183+-3", "183+-7"]
     
@@ -518,9 +543,31 @@ if __name__ == "__main__":
 
 #%% tropics land    
     print ("doing tropics, land")
+
+    lon1 = 234
+    lon2 = 245
     
-    stype_gmi = [3, 4, 5, 6, 7, 13]
-    stype_sim = [1, 4, 8]
+    lat1 = 30
+    lat2 = 65
+    
+    lon = lon%360
+    
+    m1 = (lon > lon1) & (lon < lon2)
+    m2 = (lat > lat1) & (lat < lat2)
+    
+    mask = np.logical_and(m1, m2)
+    
+    lon_gmi = lon_gmi%360
+    
+    m1 = (lon_gmi > lon1) & (lon_gmi < lon2)
+    m2 = (lat_gmi > lat1) & (lat_gmi < lat2)
+    
+    mask_gmi = np.logical_and(m1, m2)
+
+
+    
+    stype_gmi = [3, 4, 5, 6, 7]
+    stype_sim = [1]
         
     latlims  = [0, 30]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
@@ -537,11 +584,53 @@ if __name__ == "__main__":
                 figname = "hist2d_gmi_30-45_land.png")
     
     print ("doing high lats, land")
+
+
     
-    latlims  = [45, 65]    
+    latlims  = [45, 65]   
+    
+        
+  
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_45-60_land.png")
+
+
+    latlims  = [30, 65]   
+    
+    call_hist2d(ta[mask, :], lat[mask], lon[mask], stype[mask],
+                tb_gmi[mask_gmi, :], lat_gmi[mask_gmi], lon_gmi[mask_gmi], 
+                lsm_gmi[mask_gmi], latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_45-60_land_inland.png")
+
+
+    
+    lon1 = 234
+    lon2 = 245
+    
+    lat1 = 40
+    lat2 = 65
+    
+    lon = lon%360
+    
+    m1 = (lon > lon1) & (lon < lon2)
+    m2 = (lat > lat1) & (lat < lat2)
+    
+    mask = np.logical_and(m1, m2)
+    
+    lon_gmi = lon_gmi%360
+    
+    m1 = (lon_gmi > lon1) & (lon_gmi < lon2)
+    m2 = (lat_gmi > lat1) & (lat_gmi < lat2)
+    
+    mask_gmi = np.logical_and(m1, m2)
+    
+    a = tb_gmi[mask_gmi, :]
+    
+    plot_hist(ta[mask, :], a[:, :])
+    
+    plot_locations_map(lat_gmi[mask_gmi], lon_gmi[mask_gmi])
+    plot_locations_map(lat[mask], lon[mask])
     
 #%% higher latitudes sea
     
