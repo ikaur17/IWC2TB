@@ -29,16 +29,16 @@ class gmiData(Dataset):
         ta = self.file.variables["ta"]
         TB = ta[:]
         channels = self.file.variables["channels"][:]
-        
+        print (ta)
         self.stype = ta.stype
         self.lon   = ta.lon
         self.lat   = ta.lat
         self.iwp   = ta.iwp
-        self.wvp   = ta.wvp
         self.rwp   = ta.rwp
         self.t0    = ta.t0
-        self.p0    = ta.p0
-        self.z0    = ta.z0 
+        
+        #self.p0    = ta.p0
+        #self.z0    = ta.z0 
 
         self.channels = inChannels       
         idx = []
