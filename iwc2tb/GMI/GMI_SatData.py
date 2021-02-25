@@ -8,16 +8,17 @@ Created on Thu Jan 28 20:26:24 2021
 
 import numpy as np
 import xarray
-from scipy.interpolate import RegularGridInterpolator
 import re
 import os
 import glob
 from datetime import datetime
+from iwc2tb.common.plot_locations_map import plot_locations_map
 
 class GMI_Sat():
     
     def __init__(self, filenames):
         
+                                            
         if np.isscalar(filenames):
 #            print ('doing only one file')
             filenames = [filenames]
@@ -27,47 +28,50 @@ class GMI_Sat():
         gprofiles      = self.get_gprofiles()    
         self.gprofiles = gprofiles
         
-        if gprofiles[0] != "noobs_file":
-            dataset = xarray.open_dataset(filenames[0], group = "S2")
+        ix = np.where(np.array(gprofiles, copy=False) != "noobs_file")[0]
+        print (ix)
+
+        dataset = xarray.open_dataset(filenames[ix[0]], group = "S2")
+    
+        lat0    = dataset["Latitude"]
+        lon0    = dataset["Longitude"]
+        tb0     = dataset["Tb"]
+    
+        dataset.close()
         
-            lat0    = dataset["Latitude"]
-            lon0    = dataset["Longitude"]
-            tb0     = dataset["Tb"]
-        
-            dataset.close()
+        dataset               = xarray.open_dataset(self.gprofiles[ix[0]], group = "S1")
+        self.gprof_parameters = list(dataset.keys())
+        dataset.close()
         
         
         if len(filenames) != 1:       
 
-            for i, filename in enumerate(filenames):
-                if gprofiles[i] != "noobs_file":
-                    print (i)
-                
-                    dataset = xarray.open_dataset(filename, group = "S2")
+            for i in ix[1:]:
+                filename = filenames[i]
+
+                print (i)
             
-                    lat    = dataset["Latitude"]
-                    lon    = dataset["Longitude"]
-                    tb     = dataset["Tb"]
-                    
-                    lat0 = xarray.concat([lat0, lat], dim = "phony_dim_40")
-                    lon0 = xarray.concat([lon0, lon], dim = "phony_dim_40")
-                    tb0  = xarray.concat([tb0, tb], dim = "phony_dim_40") 
+                dataset = xarray.open_dataset(filename, group = "S2")
+        
+                lat    = dataset["Latitude"]
+                lon    = dataset["Longitude"]
+                tb     = dataset["Tb"]
                 
-                # lat0 = xarray.concat([lat0, lat], dim = "phony_dim_8")
-                # lon0 = xarray.concat([lon0, lon], dim = "phony_dim_8")
-                # tb0  = xarray.concat([tb0, tb], dim = "phony_dim_8") 
+                lat0 = xarray.concat([lat0, lat], dim = "phony_dim_40")
+                lon0 = xarray.concat([lon0, lon], dim = "phony_dim_40")
+                tb0  = xarray.concat([tb0, tb], dim = "phony_dim_40") 
+            
+            # lat0 = xarray.concat([lat0, lat], dim = "phony_dim_8")
+            # lon0 = xarray.concat([lon0, lon], dim = "phony_dim_8")
+            # tb0  = xarray.concat([tb0, tb], dim = "phony_dim_8") 
                 
                 
        
-        self.lat = lat0
-        self.lon = lon0
-        self.tb  = tb0 
+        self.lat = lat0.values
+        self.lon = lon0.values
+        self.tb  = tb0.values 
 
         dataset.close()        
-           
-            
-#            self.file.append(h5py.File(filename, 'r'))
-#            self.file.append(xarray.open_dataset(filename, group = 'S2'))
         
         
     def get_keys(self) :
@@ -114,7 +118,7 @@ class GMI_Sat():
             # get date and time string
             #m = re.search('-C.(.+?)-E', file)
             m = re.search('-S(.+?)-E', file)
-            print (m.group(1))
+
             
             try:
                 gproffile = glob.glob(os.path.join(gprofpath, 
@@ -127,149 +131,78 @@ class GMI_Sat():
             except:
                 print ("GPROF data not availble for %s", file) 
                 gprofiles.append("noobs_file")
-                    
             
         return gprofiles     
 
-    def get_lsm(self): 
-    
+    def get_lsm(self):        
         
-        if self.gprofiles[0] != "noobs_file":
+        idx = np.where(np.array(self.gprofiles, copy=False) != "noobs_file")[0]
 
-            dataset = xarray.open_dataset(self.gprofiles[0], group = "S1")
-            surface0 = dataset["surfaceTypeIndex"]
-            dataset.close()
+
+        dataset = xarray.open_dataset(self.gprofiles[idx[0]], group = "S1")
+        surface0 = dataset["surfaceTypeIndex"]
+        dataset.close()
 
             
         if len(self.gprofiles) > 1:              
            ix = 0
-           for gprofile in self.gprofiles:
+           for ix in idx[1:]:
+               print (ix)
+               gprofile = self.gprofiles[ix]
                
-               if gprofile != "noobs_file":
-                   print (ix)
-                   dataset  = xarray.open_dataset(gprofile, group = "S1")
-                   
-                   surface  = dataset["surfaceTypeIndex"]
-                    
-                   surface0 = xarray.concat([surface0, surface], dim = "phony_dim_7")
-                   
-                   dataset.close()
-               
-               ix = ix +1   
+
+               dataset  = xarray.open_dataset(gprofile, group = "S1")
+                
+               surface  = dataset["surfaceTypeIndex"]
+                 
+               surface0 = xarray.concat([surface0, surface], dim = "phony_dim_7")
+                
+               dataset.close()
+ 
         self.surface = surface0     
         
-        return self.surface
+        return self.surface.values
                            
-
-    # def get_data(self, parameter):
-    #     """
-    #     get data for the parameter 
+    def get_gprofdata(self, parameter): 
         
-    #     Currently only accessing data from high freq channels under "S2"
-
-    #     Parameters
-    #     ----------
-    #     parameter : string containing name of the SDS variable
-
-    #     Returns
-    #     -------
-    #     np.array containing data
-
-    #     """
-    #     data = []
-    #     for i, file in enumerate(self.files):
-    #         print (i)
-    #         dataset = xarray.open_dataset(file, group = "S2")
-    #         data.append(dataset[parameter].values)
-    #         dataset.close()
-    #     return  data
     
-    # def lsm(self):
+        if parameter in self.gprof_parameters:
+            idx = np.where(np.array(self.gprofiles, copy=False) != "noobs_file")[0]
     
-    #     lsm = xarray.open_dataset("/home/inderpreet/data/land_sea_mask.nc")
-    #     lsm = lsm.sortby('latitude' , ascending = True)    
-    #     field = lsm.lsm.values[0]
-    #     lat   =  lsm.latitude.values
-    #     lon   = lsm.longitude.values
-        
-        
-    #     my_interpolating_function = (RegularGridInterpolator((lat, lon), field, 
-    #                                               method= "nearest", bounds_error = False, 
-    #                                               fill_value = None))     
-    #     print("ok")
-
-    #     lsm = np.zeros(lat.shape)
-        
-    #     self.lon = (self.lon + 180) % 360 - 180
-    #     lsm = []
-    #     for i in range(self.lat.shape[1]):    
-    #         print (i)
-            
-    #         pts = [[self.lat[j, i], self.lon[j, i]] for j in range(self.lat.shape[0])]  
-    #         l = my_interpolating_function(pts)
-    #         lsm.append(l)
-            
-    #     grid_lsm =  np.vstack(lsm).T    
-
-    #     # iland         = grid_lsm > 0.5
-    #     # isea          = grid_lsm <= 0.5
-        
-        
-    #     # grid_lsm[iland]  = 1
-    #     # grid_lsm[isea]   = 0
-            
-    #     return grid_lsm
-            
-
-
-               
-               
-               
+    
+            dataset = xarray.open_dataset(self.gprofiles[idx[0]], group = "S1")
+            data0 = dataset[parameter]
+            dataset.close()
+    
                 
-               
-           
+            if len(self.gprofiles) > 1:              
+               ix = 0
+               for ix in idx[1:]:
+                   print (ix)
+                   gprofile = self.gprofiles[ix]
+                   
+    
+                   dataset  = xarray.open_dataset(gprofile, group = "S1")
+                    
+                   data  = dataset[parameter]
+                     
+                   data0 = xarray.concat([data0, data], dim = "phony_dim_7")
+                    
+                   dataset.close()
+    
             
-
-    # @property
-    # def lat(self):    
-    #     """
-    #     Latitude values
-
-    #     Returns
-    #     -------
-    #     TYPE
-    #         DESCRIPTION.
-
-    #     """
-        
-    #     lat = self.get_data('Latitude')
-    #     return np.concatenate(lat, axis = 0)
+            return data0.values
+        else:
+            raise Exception("Parameter should be one of  ", self.gprof_parameters)
     
-    # @property
-    # def lon(self): 
-    #     """
-    #     Longitude values
-
-    #     Returns
-    #     -------
-    #     TYPE
-    #         DESCRIPTION.
-
-    #     """
-        
-    #     return self.get_data('Longitude')
     
-    # @property
-    # def tb(self): 
-    #     """
-    #     brightness temperature values
+    def plot_scene(self, z = None):        
+        """
+        plots the overpass of DARDAR
 
-    #     Returns
-    #     -------
-    #     TYPE
-    #         DESCRIPTION.
+        Returns
+        -------
+        None.
 
-    #     """
-        
-    #     tb = self.get_data('Tb')
-    #     return np.concatenate(tb, axis  = 0)
+        """
+        plot_locations_map(self.lat, self.lon, z)

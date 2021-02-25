@@ -23,7 +23,7 @@ def bin_iwp(lat, iwp, latbins = None):
 
     if latbins is None:
         
-        latbins  = np.arange(-65, 66, 1.5)
+        latbins  = np.arange(-65, 66, 2)
     
     bins     = np.digitize(lat, latbins)
     
@@ -31,7 +31,6 @@ def bin_iwp(lat, iwp, latbins = None):
     iwp_mean = np.bincount(bins, iwp)/nbins
     
     return iwp_mean, latbins
-    
 
 #%%    
 def dardar_iwp(zipfiles):
@@ -61,41 +60,61 @@ def dardar_iwp(zipfiles):
             
         iwp_total.append(iwp)
         lat_all.append(lat)
+
         
     return np.concatenate(iwp_total), np.concatenate(lat_all)    
 #%%
 if __name__ == "__main__":    
     # GMI simulations    
     inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3')  
-    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.2') 
+    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07') 
  
      
     matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
     matfiles1 = glob.glob(os.path.join(inpath1, "2010_*.mat"))    
     
-    matfiles = matfiles = matfiles1
+    #matfiles = matfiles = matfiles1
     
     gmi = GMI(matfiles)
     glat = gmi.lat.ravel()
     giwp = gmi.iwp.ravel()
-    
+
+
+    gmi1 = GMI(matfiles1)
+    glat1 = gmi1.lat.ravel()
+    giwp1 = gmi1.iwp.ravel()    
 
 #%%    
     
     zipfiles = gmi.get_inputfiles()
     
     diwp, dlat = dardar_iwp(zipfiles)
+    
+    zipfiles1 = gmi1.get_inputfiles()
+    
+    diwp1, dlat1 = dardar_iwp(zipfiles1)
 
 #%%    
     iwp_mean_gmi, latbins = bin_iwp(glat, giwp)    
     iwp_mean_dardar, latbins = bin_iwp(dlat, diwp)
+    
+    iwp_mean_gmi1, latbins = bin_iwp(glat1, giwp1)    
+    iwp_mean_dardar1, latbins = bin_iwp(dlat1, diwp1)
 
 #%%    
-    fig, ax = plt.subplots(1, 1, figsize = [12, 8])
-    ax.plot(iwp_mean_gmi, latbins, label = "GMI")
-    ax.plot(iwp_mean_dardar, latbins, label = "DARDAR")
+    fig, ax = plt.subplots(1, 1, figsize = [8, 12])
+    ax.plot(iwp_mean_gmi, latbins, 'r--', label = "DARDAR PSD")
+    ax.plot(iwp_mean_dardar, latbins, 'r', label = "DARDAR")
+    
+    ax.plot(iwp_mean_gmi1, latbins, 'b--', label = "f07 PSD")
+    ax.plot(iwp_mean_dardar1, latbins,'b', label = "DARDAR")
+    
     ax.set_xlabel("IWP [kg/m2]")
     ax.set_ylabel("Lat [deg]") 
+    # ax.set_xscale('log')
     ax.legend()
     fig.savefig("Figures/IWP_GMI.png", bbox_inches = "tight")    
+    
+#%%
+        
     

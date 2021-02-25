@@ -29,16 +29,15 @@ class gmiData(Dataset):
         ta = self.file.variables["ta"]
         TB = ta[:]
         channels = self.file.variables["channels"][:]
-        
         self.stype = ta.stype
         self.lon   = ta.lon
         self.lat   = ta.lat
         self.iwp   = ta.iwp
-        self.wvp   = ta.wvp
         self.rwp   = ta.rwp
         self.t0    = ta.t0
-        self.p0    = ta.p0
-        self.z0    = ta.z0 
+        
+        #self.p0    = ta.p0
+        #self.z0    = ta.z0 
 
         self.channels = inChannels       
         idx = []
@@ -54,9 +53,9 @@ class gmiData(Dataset):
         
         C.append(TB)
 
-#        C.append(self.t0.reshape(-1, 1))
-#        C.append(self.z0.reshape(-1, 1))
-#        C.append(self.p0.reshape(-1, 1))  
+        C.append(self.t0.reshape(-1, 1))
+        C.append(self.lat.reshape(-1, 1))
+        C.append(self.lon.reshape(-1, 1))  
         C.append(self.stype.reshape(-1, 1))
 
         x = np.float32(np.concatenate(C, axis = 1))
@@ -80,8 +79,8 @@ class gmiData(Dataset):
         
         x[:, :4] = x_noise
   
-        self.std = np.std(x, axis = 0)[:-1]
-        self.mean = np.mean(x, axis = 0)[:-1]  
+        self.std = np.std(x, axis = 0)[:5]
+        self.mean = np.mean(x, axis = 0)[:5]  
         
         self.y = np.float32(self.iwp)
    
@@ -158,7 +157,7 @@ class gmiData(Dataset):
             
             x[:, :4]      = x_noise
             x_norm        = x.copy()
-            x_norm[:, :-1]= np.float32(self.normalise(x[:, :-1]))
+            x_norm[:, :5]= np.float32(self.normalise(x[:, :5]))
 
             # if not self.ocean:
             #     x_norm = np.concatenate((x_norm, self.lsm[i_start : i_end, :]), axis = 1)
