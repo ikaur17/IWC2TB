@@ -3,6 +3,9 @@
 """
 Created on Thu Jan 28 20:26:24 2021
 
+Class file to handle GMI L1C and L1B data
+can read in one file or multiple files at one time.
+
 @author: inderpreet
 """
 
@@ -23,9 +26,13 @@ class GMI_Sat():
 #            print ('doing only one file')
             filenames = [filenames]
         self.files = filenames    
+        
+        self.level = os.path.basename(self.files[0])[0:2]
+        
+        print (self.level)
             
         # get all corresponding GPROF files:
-        gprofiles      = self.get_gprofiles()    
+        gprofiles      = self.get_gprofiles()   
         self.gprofiles = gprofiles
         
         ix = np.where(np.array(gprofiles, copy=False) != "noobs_file")[0]
@@ -35,8 +42,14 @@ class GMI_Sat():
     
         lat0    = dataset["Latitude"]
         lon0    = dataset["Longitude"]
-        tb0     = dataset["Tb"]
-    
+        #tb0     = dataset["Tb"]
+        
+        if self.level == "1C":
+            var = "Tc"
+        if self.level == "1B"     :
+            var = "Tb"
+            
+        tb0     = dataset[var]     
         dataset.close()
         
         dataset               = xarray.open_dataset(self.gprofiles[ix[0]], group = "S1")
@@ -55,16 +68,18 @@ class GMI_Sat():
         
                 lat    = dataset["Latitude"]
                 lon    = dataset["Longitude"]
-                tb     = dataset["Tb"]
+                #tb     = dataset["Tb"]
+                tb     = dataset[var]     
                 
-                lat0 = xarray.concat([lat0, lat], dim = "phony_dim_40")
-                lon0 = xarray.concat([lon0, lon], dim = "phony_dim_40")
-                tb0  = xarray.concat([tb0, tb], dim = "phony_dim_40") 
-            
-            # lat0 = xarray.concat([lat0, lat], dim = "phony_dim_8")
-            # lon0 = xarray.concat([lon0, lon], dim = "phony_dim_8")
-            # tb0  = xarray.concat([tb0, tb], dim = "phony_dim_8") 
-                
+                if self.level == "1B":
+                    lat0 = xarray.concat([lat0, lat], dim = "phony_dim_40")
+                    lon0 = xarray.concat([lon0, lon], dim = "phony_dim_40")
+                    tb0  = xarray.concat([tb0, tb], dim = "phony_dim_40") 
+                if self.level == "1C":
+                    lat0 = xarray.concat([lat0, lat], dim = "phony_dim_8")
+                    lon0 = xarray.concat([lon0, lon], dim = "phony_dim_8")
+                    tb0  = xarray.concat([tb0, tb], dim = "phony_dim_8") 
+                    
                 
        
         self.lat = lat0.values
@@ -110,26 +125,29 @@ class GMI_Sat():
                 
         for file in self.files:
                 
-            # get date
-            #m = re.search('-C.(.+?)-S', file)
-            m = re.search('TB2016.(.+?)-S', file)
-            date = datetime.strptime(m.group(1) , "%Y%m%d")
-            
-            # get date and time string
-            #m = re.search('-C.(.+?)-E', file)
-            m = re.search('-S(.+?)-E', file)
+            if self.level == "1B":
+                m  = re.search('TB2016.(.+?)-S', file)
+                m1 = re.search('-S(.+?)-E', file)
 
+            if self.level == "1C":
+                m  = re.search('XCAL2016-C.(.+?)-S', file)
+                m1 = re.search('-S.(.+?)-E', file)
+
+            
+            date = datetime.strptime(m.group(1) , "%Y%m%d")
             
             try:
                 gproffile = glob.glob(os.path.join(gprofpath, 
                                                str(date.strftime("%Y")),
                                                str(date.strftime("%m")),
                                                '*' + date.strftime("%Y%m%d") + '-S' +
-                                               '*' + m.group(1)+ '*'))
+                                               '*' + m1.group(1)+ '*'))
+                
+
                 gprofiles.append(gproffile[0])
 
             except:
-                print ("GPROF data not availble for %s", file) 
+                print ("GPROF data not availble for ", file) 
                 gprofiles.append("noobs_file")
             
         return gprofiles     
