@@ -8,10 +8,12 @@ class gmiData(Dataset):
     Pytorch dataset for the GMI training data for IWP retrievals
 
     """
-    def __init__(self, path, inChannels,
+    def __init__(self, path, 
+                 inputs,
                  batch_size = None,
-                 ocean = False,
-                 test_data = False):
+                 std = None,
+                 mean = None,
+                 log = False):
         """
         Create instance of the dataset from a given file path.
 
@@ -28,7 +30,7 @@ class gmiData(Dataset):
 
         ta = self.file.variables["ta"]
         TB = ta[:]
-        channels = self.file.variables["channels"][:]
+
         self.stype = ta.stype
         self.lon   = ta.lon
         self.lat   = ta.lat
@@ -36,87 +38,56 @@ class gmiData(Dataset):
         self.rwp   = ta.rwp
         self.t0    = ta.t0
         
-        #self.p0    = ta.p0
-        #self.z0    = ta.z0 
-
-        self.channels = inChannels       
+        all_inputs = [TB, self.t0.reshape(-1, 1), 
+                      self.lon.reshape(-1, 1), self.lat.reshape(-1, 1),
+                      self.stype.reshape(-1, 1)] 
+        
+        inputnames = np.array(["ta", "t0", "lon", "lat", "stype"])
+        
+        self.inputs = inputs       
         idx = []
         
-        for i in range(len(inChannels)):
-
-            idx.append(np.argwhere(channels == inChannels[i])[0][0]) 
+        for i in range(len(inputs)):
+            print(inputs[i])
+            idx.append(np.argwhere(inputnames == inputs[i])[0][0]) 
                                                                             
-        self.ocean = ocean
+
         self.index = idx
-        
+        self.chindex = [0, 1, 2, 3]
         C = []
-        
-        C.append(TB)
-
-        C.append(self.t0.reshape(-1, 1))
-        C.append(self.lat.reshape(-1, 1))
-        C.append(self.lon.reshape(-1, 1))  
-        C.append(self.stype.reshape(-1, 1))
-
-        x = np.float32(np.concatenate(C, axis = 1))
-
-#         im = []
-#         for i in self.index:
-#             im.append(TB.mask[i, :])
-#         im = np.stack(im, axis = 1)
-# #        print (im.shape, np.sum(im))
-#         im = np.logical_or.reduce(im, axis = 1)	
-        
-	    #store mean and std to normalise data
-        
-        # if self.ocean:
-        #    il = self.stype == 0
-        #    im = np.logical_and(~im, il) 
-        # else:
-        #     im = ~im
+        for i in idx:
+            C.append(all_inputs[i])
             
-        x_noise = self.add_noise(x[:, :4], self.index)
+        x = np.float32(np.concatenate(C, axis = 1))
         
-        x[:, :4] = x_noise
-  
-        self.std = np.std(x, axis = 0)[:5]
-        self.mean = np.mean(x, axis = 0)[:5]  
+        if std is not None:
+            self.std = std
+        else:
+            self.std = np.std(x, axis = 0)
+        if mean is not None:
+            self.mean = mean
+        else:
+            self.mean = np.mean(x, axis = 0)
         
         self.y = np.float32(self.iwp)
-   
-        #self.y_noise = self.add_noise(self.y, self.itarget) 
 
         self.x = x.data
+        
+        # latmax = 65.
+        # latmin = -65.
+        # surmin = 0.
+        # surmax = 9.
+        
+        # self.x[:, 4] = (self.x[:, 4] - latmin)/(latmax - latmin)
+        # self.x[:, 5] = (self.x[:, 5] - surmin)/(surmax - surmin)
+        
         self.y = self.y
-        
-        #self.y_noise = self.y_noise.data[im]
-        # self.lsm = np.float32(self.lsm[im])
-        # self.lsm = np.expand_dims(self.lsm, axis = 1)
-        # self.im  = im
-        
-        # if test_data:
-        #     test_file_path = path.replace("test", "test_noisy")
-        #     test_file = netCDF4.Dataset(test_file_path, mode = "r")
-        #     print (test_file_path)
-        #     print (path)
-        #     ta = test_file.variables["ta"]
-        #     TB_noise = ta[:]
-                                                                     
-        #     C = []
-            
-        #     for ic in self.index:
-        #         C.append(TB_noise[1, ic, :])
-    
-        #     self.x = np.float32(np.stack(C, axis = 1))
-        #     self.std = np.std(self.x[im, :], axis = 0)
-        #     self.mean = np.mean(self.x[im, :], axis = 0)   
-       
-        #     self.y_noise =  np.float32(TB_noise[0, self.itarget[0], :])
+        n = np.sum(self.y == 0)
+        self.y[self.y == 0] = np.random.rand(n) * 1e-20
 
-        #     self.x = self.x.data[im, :]
-        #     self.y_noise = self.y_noise.data[im]
-            
-
+        if log == True:
+            self.y = np.log(self.y)
+        
 
     def __len__(self):
         """
@@ -144,6 +115,7 @@ class gmiData(Dataset):
             indices = np.random.permutation(self.x.shape[0])
             self.x  = self.x[indices, :]
             self.y  = self.y[indices]
+            self.lon = self.lon[indices]
 
         if self.batch_size is None:
             return (torch.tensor(self.x[[i], :]),
@@ -153,14 +125,12 @@ class gmiData(Dataset):
             i_end   = self.batch_size * (i + 1)    
             
             x       = self.x[i_start : i_end, :].copy()
-            x_noise = np.float32(self.add_noise(x[:, :4], self.index))
+            x_noise = np.float32(self.add_noise(x[:, :4], self.chindex))
             
             x[:, :4]      = x_noise
             x_norm        = x.copy()
-            x_norm[:, :5]= np.float32(self.normalise(x[:, :5]))
-
-            # if not self.ocean:
-            #     x_norm = np.concatenate((x_norm, self.lsm[i_start : i_end, :]), axis = 1)
+            x_norm        = np.float32(self.normalise_std(x))
+            
             return (torch.tensor(x_norm),
                     torch.tensor(self.y[i_start : i_end]))
         
@@ -196,7 +166,7 @@ class gmiData(Dataset):
                 x_noise[:] += noise
         return x_noise    
  
-    def normalise(self, x):
+    def normalise_std(self, x):
         """
         normalise the input data with mean and standard deviation
         Args:
@@ -209,3 +179,7 @@ class gmiData(Dataset):
             
         return x_norm 
         
+    def normalise_minmax(self, x):
+
+        x_norm = (x - x.min())/(x.max() - x.min())
+        return x_norm
