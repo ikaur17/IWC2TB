@@ -145,17 +145,20 @@ class GMI():
         data : np.array of requested data
 
         """
+        allparameters = ("[Tb, iwp, lat, lon, pos, stype, z0, p0, t0, rwp, wvp,"
+                            "incang, e166h, e183h, e166v, e183v]")
         
         if parameter not in ["Tb", "Ta", "iwp", "lat", "lon", "pos" ,
-                              "stype", "z0", "p0", "t0", "rwp", "wvp"]:
-            raise ValueError("parameter should be one of [Tb, iwp, lat, lon, pos, stype, z0, p0, t0, rwp, wvp]")
+                              "stype", "z0", "p0", "t0", "rwp", "wvp",
+                              "t2m", "tskin", "incang", "e166h", "e183h",
+                              "e166v", "e183v"]:
+            raise ValueError(f"parameter should be one of {allparameters}")
             
         data = []    
         if parameter == "Tb":
             for i in range(len(self.mat)):
                 mat = self.mat[i]
                 tb  = mat["Tb"]
-#                tb_noise = add_gaussian_noise(mat["Tb"], self.nedt)
                 data.append(tb)
             return data
         
@@ -171,7 +174,7 @@ class GMI():
         elif parameter == "stype":
             return self.get_lsm()
         
-        elif parameter in ["iwp", "z0", "t0", "rwp", "wvp"]:
+        elif parameter in ["iwp", "z0", "t0", "rwp", "wvp", "t2m", "tskin"]:
              for i in range(len(self.mat)):
                 mat = self.mat[i]
                 var = mat["B"][parameter][0,0]
@@ -180,6 +183,14 @@ class GMI():
                 data.append(var)    
              return data  
          
+        elif parameter in ["incang", "e166h", "e183h", "e166v", "e183v"]:
+            for i in range(len(self.mat)):
+                mat = self.mat[i]
+                var = mat["S"][parameter][0,0]
+                lat = mat["B"]["lat"][0, 0]
+                var = apply_gaussfilter(lat, var, 6/111)# 6km smoothing
+                data.append(var)    
+            return data  
         else:
             for i in range(len(self.mat)):
                 mat = self.mat[i]
@@ -204,10 +215,10 @@ class GMI():
         data : list of arrays containing the parameter desired
 
         """
-        
+        allparameters = "[icehabit, icepsd, icesize, rainpsd, lsampling, pratio_csat, pratio_gmi, phase_tlim]"
         if parameter not in ["icehabit", "icepsd", "icesize", "rainpsd", "lsampling" ,
                               "pratio_csat", "pratio_gmi", "phase_tlim"]:
-            raise (ValueError("parameter should be one of [icehabit, icepsd, icesize, rainpsd, lsampling, pratio_csat, pratio_gmi, phase_tlim]"),)
+            raise (ValueError(f"parameter should be one of {allparameters}"),)
         data = []
         for i in range(len(self.mat)):
                 mat = self.mat[i]
@@ -244,6 +255,10 @@ class GMI():
     def tb(self):
         """
         brightness temperatures
+        
+        Tb values, one column per position. Rows match (in order):
+                 166V, 166H, 183.31+-7V, 183.31+-3V
+
 
         Returns
         -------
@@ -258,6 +273,9 @@ class GMI():
     def ta(self):
         """
         antenna weighted brightness temperatures
+        
+        Ta values, one column per position. Rows match (in order):
+                 166V, 166H, 183.31+-7V, 183.31+-3V
 
         Returns
         -------
@@ -272,7 +290,9 @@ class GMI():
     def ta_noise(self):
         """
         antenna weighted brightness temperatures with gaussian noise
-
+        
+        one column per position. Rows match (in order):
+                 166V, 166H, 183.31+-7V, 183.31+-3V
         Returns
         -------
         np.array of TB values
@@ -411,8 +431,126 @@ class GMI():
             return np.array(lon).ravel()
         else:
             return np.concatenate(lon, axis = 0).ravel()
-    
-          
+
+    @property
+    def t2m(self):
+        """
+        2m temperature
+
+        Returns
+        -------
+        np.array of t2m values
+
+        """
+        
+        t2m = self.get_data('t2m')
+        if len(t2m)==1:
+            return np.array(t2m).ravel()
+        else:
+            return np.concatenate(t2m, axis = 0).ravel()    
+ 
+    @property
+    def incang(self):
+        """
+        incidence angle
+
+        Returns
+        -------
+        np.array of incidence angle values
+
+        """
+        
+        incang = self.get_data('incang')
+        if len(incang)==1:
+            return np.array(incang).ravel()
+        else:
+            return np.concatenate(incang, axis = 0).ravel()    
+
+    @property
+    def e166h(self):
+        """
+        emissivities, 166 GHz H polarisation
+
+        Returns
+        -------
+        np.array of incidence angle values
+
+        """
+        
+        e166h = self.get_data('e166h')
+        if len(e166h)==1:
+            return np.array(e166h).ravel()
+        else:
+            return np.concatenate(e166h, axis = 0).ravel()   
+
+    @property
+    def e166v(self):
+        """
+        emissivities, 166 GHz V polarisation
+
+        Returns
+        -------
+        np.array of incidence angle values
+
+        """
+        
+        e166v = self.get_data('e166v')
+        if len(e166v)==1:
+            return np.array(e166v).ravel()
+        else:
+            return np.concatenate(e166v, axis = 0).ravel()    
+
+    @property
+    def e183v(self):
+        """
+        emissivities, 183 GHz V polarisation
+
+        Returns
+        -------
+        np.array of incidence angle values
+
+        """
+        
+        e183v = self.get_data('e183v')
+        if len(e183v)==1:
+            return np.array(e183v).ravel()
+        else:
+            return np.concatenate(e183v, axis = 0).ravel()  
+        
+    @property
+    def e183h(self):
+        """
+        emissivities, 183 GHz H polarisation
+
+        Returns
+        -------
+        np.array of incidence angle values
+
+        """
+        
+        e183h = self.get_data('e183h')
+        if len(e183h)==1:
+            return np.array(e183h).ravel()
+        else:
+            return np.concatenate(e183h, axis = 0).ravel()            
+       
+    @property
+    def skt(self):
+        """
+        skin temperature
+
+        Returns
+        -------
+        np.array of skt values
+
+        """
+        
+        skt = self.get_data('tskin')
+        if len(skt)==1:
+            return np.array(skt).ravel()
+        else:
+            return np.concatenate(skt, axis = 0).ravel()   
+         
     @property
     def stype(self):
         """
