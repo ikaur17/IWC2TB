@@ -10,9 +10,11 @@ class gmiData(Dataset):
     """
     def __init__(self, path, 
                  inputs,
+                 outputs,
                  batch_size = None,
+                 latlims = None,
                  std = None,
-                 mean = None,
+                 mean = None,                 
                  log = False):
         """
         Create instance of the dataset from a given file path.
@@ -36,6 +38,7 @@ class gmiData(Dataset):
         self.lat   = ta.lat
         self.iwp   = ta.iwp
         self.rwp   = ta.rwp
+        self.wvp   = ta.wvp
         self.t0    = ta.t0
         
         all_inputs = [TB, self.t0.reshape(-1, 1), 
@@ -43,6 +46,11 @@ class gmiData(Dataset):
                       self.stype.reshape(-1, 1)] 
         
         inputnames = np.array(["ta", "t0", "lon", "lat", "stype"])
+        
+        all_outputs = [self.iwp, self.rwp, self.wvp]
+        outputnames = np.array(["iwp", "rwp", "wvp"])
+        
+        idy         = np.argwhere(outputnames == outputs)[0][0]
         
         self.inputs = inputs       
         idx = []
@@ -60,6 +68,14 @@ class gmiData(Dataset):
             
         x = np.float32(np.concatenate(C, axis = 1))
         
+        if latlims is not None:            
+            ilat = (np.abs(self.lat) >= latlims[0]) & (np.abs(self.lat) <= latlims[1])
+            x         = x[ilat, :]
+            self.iwp  = self.iwp[ilat]
+            self.lon  = self.lon[ilat] 
+            self.wvp  = self.wvp[ilat]
+            self.rwp  = self.rwp[ilat]
+            
         if std is not None:
             self.std = std
         else:
@@ -69,25 +85,15 @@ class gmiData(Dataset):
         else:
             self.mean = np.mean(x, axis = 0)
         
-        self.y = np.float32(self.iwp)
-
+        self.y = np.float32(all_outputs[idy])
+        
         self.x = x.data
         
-        # latmax = 65.
-        # latmin = -65.
-        # surmin = 0.
-        # surmax = 9.
-        
-        # self.x[:, 4] = (self.x[:, 4] - latmin)/(latmax - latmin)
-        # self.x[:, 5] = (self.x[:, 5] - surmin)/(surmax - surmin)
-        
-        self.y = self.y
-        n = np.sum(self.y == 0)
-        self.y[self.y == 0] = np.random.rand(n) * 1e-20
+        self.y[self.y == 0] = 1e-12
 
         if log == True:
-            self.y = np.log(self.y)
-        
+            self.y = np.log(self.y)            
+
 
     def __len__(self):
         """
