@@ -38,16 +38,26 @@ class gmiData(Dataset):
         self.lat   = ta.lat
         self.iwp   = ta.iwp
         self.rwp   = ta.rwp
-        self.wvp   = ta.wvp
         self.t0    = ta.t0
+        self.z0    = ta.z0
+        self.wvp   = ta.wvp
+        #self.lst   = ta.lst
+        self.t2m   = ta.t2m
+        self.p0    = ta.p0
+
         
         all_inputs = [TB, self.t0.reshape(-1, 1), 
                       self.lon.reshape(-1, 1), self.lat.reshape(-1, 1),
-                      self.stype.reshape(-1, 1)] 
+                      self.stype.reshape(-1, 1), self.t2m.reshape(-1, 1), 
+                      self.wvp.reshape(-1, 1), self.z0.reshape(-1, 1),
+                      self.p0.reshape(-1, 1)] 
         
-        inputnames = np.array(["ta", "t0", "lon", "lat", "stype"])
+        inputnames = np.array(["ta", "t0",
+                               "lon", "lat", "stype",
+                               "t2m", "wvp", "z0", 
+                               "p0"])
         
-        all_outputs = [self.iwp, self.rwp, self.wvp]
+
         outputnames = np.array(["iwp", "rwp", "wvp"])
         
         idy         = np.argwhere(outputnames == outputs)[0][0]
@@ -56,7 +66,6 @@ class gmiData(Dataset):
         idx = []
         
         for i in range(len(inputs)):
-            print(inputs[i])
             idx.append(np.argwhere(inputnames == inputs[i])[0][0]) 
                                                                             
 
@@ -75,6 +84,13 @@ class gmiData(Dataset):
             self.lon  = self.lon[ilat] 
             self.wvp  = self.wvp[ilat]
             self.rwp  = self.rwp[ilat]
+            #self.lst  = self.lst[ilat]
+            self.t2m  = self.t2m[ilat]
+            self.t0   = self.t0[ilat]
+            self.z0   = self.z0[ilat]
+            self.p0   = self.p0[ilat]            
+            
+        all_outputs = [self.iwp, self.rwp, self.wvp]    
             
         if std is not None:
             self.std = std
@@ -94,6 +110,7 @@ class gmiData(Dataset):
         if log == True:
             self.y = np.log(self.y)            
 
+        self.file.close()
 
     def __len__(self):
         """
@@ -119,9 +136,11 @@ class gmiData(Dataset):
         if (i == 0):
 
             indices = np.random.permutation(self.x.shape[0])
-            self.x  = self.x[indices, :]
-            self.y  = self.y[indices]
+            self.x   = self.x[indices, :]
+            self.y   = self.y[indices]
             self.lon = self.lon[indices]
+            self.lat = self.lat[indices]
+            #self.lst = self.lst[indices]
 
         if self.batch_size is None:
             return (torch.tensor(self.x[[i], :]),
@@ -164,7 +183,7 @@ class gmiData(Dataset):
         size_TB = int(x.size/len(nedt_subset))
         x_noise = x.copy()
         if len(index) > 1:
-            for ic in range(len(self.index)):
+            for ic in range(len(index)):
                 noise = np.random.normal(0, nedt_subset[ic], size_TB)
                 x_noise[:, ic] += noise
         else:

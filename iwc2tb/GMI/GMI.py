@@ -62,7 +62,7 @@ class GMI():
             zfile = file.replace(".mat", ".zip")
 #           zfile = zfile.replace("GMI_m65", "DARDAR_ERA_m65")
             fname = os.path.basename(zfile)
-            zfile = os.path.join("/home/inderpreet/Dendrite/Projects/IWP/GMI", "DARDAR_ERA_m65_p65_zfield", fname)
+            zfile = os.path.join("/home/inderpreet/Dendrite/Projects/IWP/GMI", "DARDAR_ERA_m65_p65_SRTM", fname)
 
             inputfiles.append(zfile)
         return inputfiles    
