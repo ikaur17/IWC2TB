@@ -17,8 +17,10 @@ from era2dardar.DARDAR import DARDARProduct
 from era2dardar.atmData import atmdata
 from era2dardar.utils.alt2pressure import alt2pres, pres2alt
 from iwc2tb.common.plot_locations_map import plot_locations_map
+from era2dardar.utils.read_from_zip import read_from_zip
 import shutil
 plt.rcParams.update({'font.size': 20})
+from scipy import interpolate
 
 #%%
 def bin_iwp(lat, iwp, latbins = None):
@@ -34,6 +36,39 @@ def bin_iwp(lat, iwp, latbins = None):
     
     return iwp_mean, latbins
 
+def interpolate_iwc(dardar, z_field, p_grid):
+        """
+        The IWC data from DARDAR interpolated to pressure grid defined in
+        p_grid
+        -------
+        grid_iwc : np.array containing the interpolated values in
+        dimensions [1, p, lat, lon]
+        """ 
+        
+
+        
+        try:
+            iwc             = dardar.iwc
+            height_d        = dardar.height
+            lat             = dardar.latitude
+        except:
+            print ("iwc and height not available as class methods/property")
+            
+  
+        z_field         = np.squeeze(z_field)  
+        
+        grid_iwc = np.zeros(z_field.shape)
+        
+        for i in range(lat.shape[0]):
+            # first interpolate dardar heights to pressures using z_field and p_grid
+            f                 = interpolate.interp1d(z_field[:, i], np.log(p_grid), fill_value  = "extrapolate")
+            p_d               = f(height_d) # log scale
+            # using dardar pressure levels to interpolate reflectivities to p_grid 
+            f                 = interpolate.interp1d(p_d, iwc[i, :], fill_value = "extrapolate")
+            grid_iwc[:, i]    = f(np.log(p_grid))
+        
+       
+        return grid_iwc   
 #%%    
 def dardar_iwp(zipfiles):
     
@@ -48,12 +83,14 @@ def dardar_iwp(zipfiles):
     for zfile in zipfiles:
         print (zfile)
         dardarfile, N = zip2dardar.zip2dardar(zfile)
+        z_field = read_from_zip(zfile, "z_field")
         dardar = DARDARProduct(dardarfile, latlims = [-65, 65], node = N)
         
-        atm = atmdata(dardar, p_grid, domain = None)
-        iwc = np.squeeze(atm.iwc)
-        lat = atm.lat
-        lon = atm.lon
+        iwc = interpolate_iwc(dardar, z_field, p_grid)
+        
+        lat = dardar.latitude
+        lon = dardar.longitude
+
         
         z   = pres2alt(p_grid)
 
@@ -92,62 +129,63 @@ def get_fullnames(path , files):
 #%%
 if __name__ == "__main__":    
     # GMI simulations    
-    inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3')  
-    inpath1  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07')
-    inpath2  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_si')
+    #inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3')  
+    #inpath1  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_testsimulations/test_f07')
+    inpath2  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.0')
 
     
     
-    matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
-    matfiles1 = glob.glob(os.path.join(inpath1, "2010_0*.mat")) 
+    #matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
+    #matfiles1 = glob.glob(os.path.join(inpath1, "2010_0*.mat")) 
     matfiles2 = glob.glob(os.path.join(inpath2, "2010_0*.mat")) 
 
-
-#%% find files over himalayas with high IWC
-    for file in matfiles1:
-            gmi = GMI(file)
+# #%% find files with high IWC
+    
+#     #Himalayas
+#     latlims = [29, 44]
+#     lonlims = [71, 76]
+   
+#     # N. America
+#     latlims = [34, 40]
+#     lonlims = [240, 242]   
+#     for file in matfiles2:
+#             gmi = GMI(file)
             
-            mla = (gmi.lat > 29) & (gmi.lat < 44)
-            mlo = (gmi.lon > 71) & (gmi.lon < 76)
+#             iwp = gmi.iwp
             
-            mask = np.logical_and(mla, mlo)
+#             iwp_mean = np.mean(iwp)
             
-            if np.sum(mask) != 0:
-                print (file)
-                plot_locations_map(gmi.lat, gmi.lon, gmi.iwp)
+#             zfile = gmi.get_inputfiles()
+#             diwp, dlat, dlon = dardar_iwp(zfile)
+            
+#             diwp_mean = np.mean(diwp)
+            
+#             diff = np.abs((diwp_mean - iwp_mean)/diwp_mean)
+            
+#             if diff > 0.35:
+#                 print(file, diwp_mean, iwp_mean)
+            
+#             #mla = (gmi.lat > latlims[0]) & (gmi.lat < latlims[1])
+#             #mlo = (gmi.lon > lonlims[0]) & (gmi.lon < lonlims[1])
+            
+#             #mask = np.logical_and(mla, mlo)
+            
+#             #if np.sum(mask) != 0:
+#             #    print (file)
+#             #    plot_locations_map(gmi.lat, gmi.lon, gmi.iwp)
         
 
 
 #%%    
-    # matfiles1 = matfiles1 + matfiles2
-
-    basefiles   = get_basenames(matfiles)
-    basefiles1  = get_basenames(matfiles1)
-    basefiles2  = get_basenames(matfiles2)
-    commonfiles = set(basefiles).intersection(basefiles1)
-    
-    
-    matfiles    = get_fullnames(inpath, commonfiles)
-    matfiles1   = get_fullnames(inpath1, commonfiles)
-    matfiles2   = get_fullnames(inpath2, commonfiles)
-    
-    
-
-    
-    gmi = GMI(matfiles)
+    gmi = GMI(matfiles2)
     glat = gmi.lat.ravel()
     glon = gmi.lon.ravel()%360
     giwp = gmi.iwp.ravel()
+ 
+    
+    
+    gmask = np.abs(glat <= 30.0)    
 
-
-    gmi1 = GMI(matfiles1)
-    glat1 = gmi1.lat.ravel()
-    glon1 = gmi1.lon.ravel()%360
-    giwp1 = gmi1.iwp.ravel()    
-
-#%%
-
-  
 #%%    
     
     zipfiles = gmi.get_inputfiles()
@@ -155,64 +193,21 @@ if __name__ == "__main__":
     diwp, dlat, dlon = dardar_iwp(zipfiles)    
     dlon = dlon%360
     
-    zipfiles1 = gmi1.get_inputfiles()
+    dmask = np.abs(dlat <= 30.0)
     
-    diwp1, dlat1, dlon1 = dardar_iwp(zipfiles1)
-    dlon1 = dlon1%360
-    
+
     stype  = gmi.stype
-    stype1 = gmi1.stype
-    
-#%% 
-    # himalaya   
-    latlims = [30, 45]
-    lonlims = [60, 105]
-    
-    #latlims = [0, 0.1]
-    #lonlims = [1, 1.1]
-    
-    dim1 = filter_iwp(latlims, lonlims, dlat1, dlon1)
-    dim  = filter_iwp(latlims, lonlims, dlat, dlon)
-    
-    im   = filter_iwp(latlims, lonlims, gmi.lat, gmi.lon)
-    im1  = filter_iwp(latlims, lonlims, gmi1.lat, gmi1.lon)
-    
-    
-    # # N America
-    # latlims = [34, 40]
-    # lonlims = [240, 242]
-    
-    
-    # dim12 = filter_iwp(latlims, lonlims, dlat1, dlon1)
-    # dim2  = filter_iwp(latlims, lonlims, dlat, dlon)
-    
-    # im2   = filter_iwp(latlims, lonlims, gmi.lat, gmi.lon)
-    # im12  = filter_iwp(latlims, lonlims, gmi1.lat, gmi1.lon)
     
 
-    # im   = np.logical_or(im, im2)
-    # im1  = np.logical_or(im1, im12)
-    # dim1 = np.logical_or(dim1, dim12)
-    # dim  = np.logical_or(dim, dim2)
-    
 #%%
-    iwp_mean_gmi, latbins = bin_iwp(glat[~im], giwp[~im])    
-    iwp_mean_dardar, latbins = bin_iwp(dlat[~dim], diwp[~dim])
+    iwp_mean_gmi, latbins = bin_iwp(glat, giwp)    
+    iwp_mean_dardar, latbins = bin_iwp(dlat, diwp)
     
-    iwp_mean_gmi2 , latbins = bin_iwp(glat1[~im1], giwp1[~im1])    
-    iwp_mean_dardar1, latbins = bin_iwp(dlat1[~dim1], diwp1[~dim1])
-    
-    iwp_mean_gmi1, latbins =  bin_iwp(glat1, giwp1)  
-    
-
 #%%    
     fig, ax = plt.subplots(1, 1, figsize = [8, 12])
-    ax.plot(iwp_mean_gmi, latbins, 'r--', label = "DARDAR PSD")
+    ax.plot(iwp_mean_gmi, latbins, 'r--', label = "f07 PSD")
     ax.plot(iwp_mean_dardar, latbins, 'r', label = "DARDAR")
     
-    ax.plot(iwp_mean_gmi1, latbins, 'b--', label = "f07 PSD")
-    #ax.plot(iwp_mean_gmi2, latbins, 'r--', label = "f07 PSD filtered")
-    ax.plot(iwp_mean_dardar1, latbins,'b', label = "DARDAR")
     
     ax.set_xlabel("IWP [kg/m2]")
     ax.set_ylabel("Lat [deg]") 
@@ -220,8 +215,45 @@ if __name__ == "__main__":
     ax.legend()
     fig.savefig("Figures/IWP_GMI_dardar.png", bbox_inches = "tight")    
     
+#%% PDF of IWP
+    
+
+    bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5, 10, 20, 50, 100, 200])
+    
+    #bins = np.arange(0, 200, 0.0001)
+    ghist, _ = np.histogram(giwp[gmask], bins, density = True )
+    dhist, _ = np.histogram(diwp[dmask], bins, density = True)
+    
+    
+    
+    bin_center = 0.5 * (bins[1:] + bins[:-1])
+    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+    
+    #ax.plot(bin_center, shist, 'o-', label = "SI" )
+    ax.plot(bin_center, dhist, 'o-', label = "DARDAR" )
+    ax.plot(bin_center, ghist, 'o-',label = "GMI" )
+    
+    ax.set_xlabel("IWP [kg/m2]")
+    ax.set_ylabel("PDF")
+    ax.legend()
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    
+    fig.savefig("Figures/PDF_IWP.png", bbox_inches = "tight")
+   
+    
+#%% pratio PDF
+
+    pr = gmi.get_O("pratio_gmi")
+    pr = np.stack(pr).ravel()
+
+    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+    ax.hist(pr, bins = np.arange(1, 1.41, 0.01), density = True, histtype = "step")
+    ax.set_xlabel("pratio")
+    ax.set_ylabel("frequency")
+    ax.set_title("mean pratio = " + str(np.round(np.mean(pr), 3)))
+    fig.savefig("Figures/pratio.png", bbox_inches = "tight")
+    
+    
 #%%
-    maplims = [25., 47., 60., 107.]
-    plot_locations_map(glat1[im1], glon1[im1], z = giwp1[im1], maplims = maplims)
-    plot_locations_map(dlat1[dim1], dlon1[dim1], z = diwp1[dim1], maplims = maplims)    
     

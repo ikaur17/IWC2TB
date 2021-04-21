@@ -27,9 +27,9 @@ option1 = True
 option2 = False
 
 if option1:
-    dpath  =  '/home/inderpreet/Dendrite/UserAreas/Kaur/temp/Z'
+    dpath  =  '/home/inderpreet/Dendrite/UserAreas/Kaur//Z'
         
-    dpath_srtm  =  '/home/inderpreet/Dendrite/UserAreas/Kaur/temp/Z'
+    dpath_srtm  =  '/home/inderpreet/Dendrite/UserAreas/Kaur//Z'
 
     bpfile  = os.path.join(dpath, "particle_bulkprop_field.xml.bin")    
     bpfile_s  = os.path.join(dpath_srtm, "particle_bulkprop_field.xml.bin")
@@ -47,14 +47,13 @@ if option1:
     path1 = "/home/inderpreet/Dendrite/Projects/IWP/GMI/2C-SNOW/"
     file1 = "2010027071721_19950_CS_2C-SNOW-PROFILE_GRANULE_P1_R05_E03_F00.hdf"
     ix, iy = 84, 13633
-    ix, iy = 84, 6827
+    #ix, iy = 84, 6827
     #ix, iy = 84, 6810
     #latlims = [35.5, 36]
-    latlims = [-51, -47]
+    latlims = [0, 65]
     #latlims = [-65, 0]
     #latlims = [32, 36]
     lonlims = [70, 100]
-
 
 
 

@@ -25,6 +25,7 @@ from iwc2tb.common.add_gaussian_noise import add_gaussian_noise
 from iwc2tb.py_atmlab.gaussfilter import filter_stype
 from mpl_toolkits.basemap import Basemap
 from matplotlib.colors import LogNorm
+from iwc2tb.common.plot_locations_map import plot_locations_map
 import scipy
 from matplotlib import ticker, cm
 plt.rcParams.update({'font.size': 30})
@@ -110,13 +111,13 @@ def plot_pdf_gmi(Ta, Tb, bins= None, figname = "distribution_gmi.pdf"):
             i = 2
     
         hist_a = np.histogram(Ta[::3, i],  bins, density = True)      
-        hist_b = np.histogram(Tb[::6, i],  bins, density = True)  
+        hist_b = np.histogram(Tb[::10, i],  bins, density = True)  
         
         ax.plot(bins[:-1], hist_b[0],'b', label =  freq[i]+ ' obs', linewidth = 2, alpha = 0.5)       
         ax.plot(bins[:-1], hist_a[0],'b--', label =  freq[i] + ' sim', linewidth = 2, alpha = 0.5)
         
         hist_a = np.histogram(Ta[::3, i+1],  bins, density = True)      
-        hist_b = np.histogram(Tb[::6, i+1],  bins, density = True)  
+        hist_b = np.histogram(Tb[::10, i+1],  bins, density = True)  
         
         ax.plot(bins[:-1], hist_b[0], 'r', label =  freq[i+1] + ' obs', linewidth = 2, alpha = 0.5)       
         ax.plot(bins[:-1], hist_a[0], 'r--', label =  freq[i+1] +  ' sim', linewidth = 2, alpha = 0.5)
@@ -328,44 +329,7 @@ def remove_oversampling_gmi(tb, lat, lon, lsm):
         
     return tb_sub, lat_sub, lon_sub, lsm_sub            
         
-    
-#%%
-def plot_locations_map(lat0, lon0, z = None):   
-    """
-    plt lat/lon locations on map
 
-    Parameters
-    ----------
-    lat0 : np.array, latitudes
-    lon0 : np.array, longitudes
-    z : TYPE, optional
-        DESCRIPTION. The default is None.
-
-    Returns
-    -------
-    None.
-
-    """
-    
-    plt.figure(figsize=(20, 10))
-
-    m = Basemap(llcrnrlon=0.,llcrnrlat=-85.,urcrnrlon=360.,urcrnrlat=85.,\
-                  rsphere=(6378137.00,6356752.3142),\
-                  resolution='c',projection='cyl')
-#    plt.title(os.path.basename(matfile))    
-    m.shadedrelief(scale = 0.1)
-
-    lon0 = lon0 % 360
-
-    if z is not None:
-        cs = (m.scatter(lon0, lat0, latlon = True, c = z, 
-                        cmap = "tab20c"))
-        
-    else:
-        cs = m.scatter(lon0, lat0, latlon = True, cmap = "PiYG", vmin = 0, vmax = 300)
-    plt.colorbar(cs)
-    plt.show()  
-#    plt.savefig('try.png', bbox_inches = 'tight')        
 
 #%%
 def call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
@@ -379,6 +343,8 @@ def call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi,
     
 #    ta, lat, lon, stype  = get_Ta(matfiles, latlims, lsm = None)
     ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+    plot_pdf_gmi(ta1, tb0, bins= None, figname = "distribution_gmi.pdf")
     
 #    ta1 = swap_gmi_183(ta1)
 
@@ -469,17 +435,17 @@ def compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims):
 if __name__ == "__main__":
     
     # GMI satellite data   
-    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/06/')
-    #inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/06/')
+    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/01/')
+    #inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1C/2019/01/')
     gmifiles = glob.glob(os.path.join(inpath, "*/*.HDF5"))
     
     random.shuffle(gmifiles)
-    gmi_sat = GMI_Sat(gmifiles[:20])
+    gmi_sat = GMI_Sat(gmifiles[:15])
     
-    lat_gmi = gmi_sat.lat.values
-    lon_gmi = gmi_sat.lon.values
-    tb_gmi  = gmi_sat.tb.values
-    lsm_gmi = gmi_sat.get_lsm().values
+    lat_gmi = gmi_sat.lat
+    lon_gmi = gmi_sat.lon
+    tb_gmi  = gmi_sat.tb
+    lsm_gmi = gmi_sat.get_lsm()
     
     
     lat_gmi = lat_gmi.ravel()
@@ -490,25 +456,25 @@ if __name__ == "__main__":
     tb_gmi, lat_gmi, lon_gmi, lsm_gmi = remove_oversampling_gmi(tb_gmi, lat_gmi, lon_gmi, lsm_gmi)
     
     # GMI simulations    
-    inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test_f07')  
-    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3') 
+    inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65') 
  
      
-    matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
-    matfiles1 = glob.glob(os.path.join(inpath1, "2010_*.mat"))
+    matfiles = glob.glob(os.path.join(inpath, "2010_0*.mat"))
+#    matfiles1 = glob.glob(os.path.join(inpath1, "2010_*.mat"))
 
     
-    #matfiles = matfiles + matfiles1 
-    ta, lat, lon, stype = get_Ta(matfiles[:])
+    
+    gmi      = GMI(matfiles)
+    ta, lat, lon, stype = gmi.ta_noise, gmi.lat, gmi.lon, gmi.stype
     ta = swap_gmi_183(ta)
  
-    ta1, lat1, lon1, stype1 = get_Ta(matfiles1[:])
-    ta1 = swap_gmi_183(ta1)
+    # ta1, lat1, lon1, stype1 = get_Ta(matfiles[:])
+    # ta1 = swap_gmi_183(ta1)
     
 
     
-    latlims = [4, 65]
-    compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims)
+    # latlims = [4, 65]
+    # compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims)
 
        
     # GMI frequencies
@@ -524,7 +490,7 @@ if __name__ == "__main__":
                 lsm_gmi, latlims, lsm, lsm, 
                 figname = "hist2d_gmi_tropics_all.png")
  
-# higher latitudes
+    # higher latitudes
     
     print ("doing 30-45, all")    
     latlims  = [30, 45]
@@ -544,11 +510,11 @@ if __name__ == "__main__":
 #%% tropics land    
     print ("doing tropics, land")
 
-    lon1 = 234
-    lon2 = 245
+    lon1 = 73
+    lon2 = 107
     
     lat1 = 30
-    lat2 = 65
+    lat2 = 55
     
     lon = lon%360
     
@@ -567,18 +533,18 @@ if __name__ == "__main__":
 
     
     stype_gmi = [3, 4, 5, 6, 7]
-    stype_sim = [1]
+    stype_sim = [1, 4]
         
     latlims  = [0, 30]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_tropics_land.png")        
 
-# higher latitudes land
+    # higher latitudes land
     
     print ("doing high lats, land")
     
-    latlims  = [30, 45]    
+    latlims  = [50, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_30-45_land.png")
@@ -588,7 +554,6 @@ if __name__ == "__main__":
 
     
     latlims  = [45, 65]   
-    
         
   
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
@@ -596,41 +561,13 @@ if __name__ == "__main__":
                 figname = "hist2d_gmi_45-60_land.png")
 
 
-    latlims  = [30, 65]   
+    latlims  = [0, 45]   
     
     call_hist2d(ta[mask, :], lat[mask], lon[mask], stype[mask],
                 tb_gmi[mask_gmi, :], lat_gmi[mask_gmi], lon_gmi[mask_gmi], 
                 lsm_gmi[mask_gmi], latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_45-60_land_inland.png")
+                figname = "hist2d_gmi_45-60_land_himalaya.png")
 
-
-    
-    lon1 = 234
-    lon2 = 245
-    
-    lat1 = 40
-    lat2 = 65
-    
-    lon = lon%360
-    
-    m1 = (lon > lon1) & (lon < lon2)
-    m2 = (lat > lat1) & (lat < lat2)
-    
-    mask = np.logical_and(m1, m2)
-    
-    lon_gmi = lon_gmi%360
-    
-    m1 = (lon_gmi > lon1) & (lon_gmi < lon2)
-    m2 = (lat_gmi > lat1) & (lat_gmi < lat2)
-    
-    mask_gmi = np.logical_and(m1, m2)
-    
-    a = tb_gmi[mask_gmi, :]
-    
-    plot_hist(ta[mask, :], a[:, :])
-    
-    plot_locations_map(lat_gmi[mask_gmi], lon_gmi[mask_gmi])
-    plot_locations_map(lat[mask], lon[mask])
     
 #%% higher latitudes sea
     
@@ -647,7 +584,7 @@ if __name__ == "__main__":
  
     print ("doing high lats, sea")
     
-    latlims  = [45, 65]
+    latlims  = [50, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_45-60_sea.png")        
@@ -669,7 +606,7 @@ if __name__ == "__main__":
     stype_gmi = [2,14]
     stype_sim = [3,6]
     
-    latlims  = [45, 65]
+    latlims  = [50, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_highlat_sea-ice.png") 
@@ -685,7 +622,7 @@ if __name__ == "__main__":
                 figname = "hist2d_gmi_30-45_snow.png")           
     
     print ("highlats, snow")
-    latlims  = [45, 65]
+    latlims  = [50, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
                 figname = "hist2d_gmi_45-60_snow.png")  
@@ -716,11 +653,11 @@ if __name__ == "__main__":
     
 
 #%%  
-    latlims = [45, 65]
-    stype_sim = [8, 9, 10, 11]
+    latlims = [30, 45]
+    stype_sim = [3, 4, 5, 6, 7]
     ta1, lat1, lon1 = filter_gmi_sat(lat_gmi, lon_gmi, tb_gmi, lsm_gmi, latlims, stype_sim)      
-    m1 = ta1[:, 0] > 183
-    m2 = ta1[:, 0] - ta1[:, 1] > 20
+    m1 = ta1[:, 0] > 200
+    m2 = ta1[:, 0] - ta1[:, 1] > 40
     m = np.logical_and(m1, m2)
     
     plot_locations_map(lat1[m], lon1[m])
@@ -804,9 +741,10 @@ N = stats.norm(loc=mu, scale=sigma)
 
 
 #%%
-    #histogram definition
-
-
+gmi = GMI_Sat(gmifiles[3:4])
+iwp = gmi.get_gprofdata("iceWaterPath")
+iwp = np.where(iwp < -9000, np.nan, iwp)
+gmi.plot_scene(iwp)
 
     
     
