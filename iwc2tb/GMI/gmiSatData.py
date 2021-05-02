@@ -2,6 +2,8 @@ import numpy as np
 import netCDF4
 import torch
 from torch.utils.data import Dataset
+from iwc2tb.GMI.lsm_gmi2arts import lsm_gmi2arts
+from iwc2tb.GMI.swap_gmi_183 import swap_gmi_183
 
 class gmiSatData(Dataset):
     """
@@ -30,26 +32,26 @@ class gmiSatData(Dataset):
         
         self.gmi    = gmi
 
-
-        ta = self.gmi.tb
-        TB = ta[:]
-
-        self.stype = self.gmi.get_lsm()
+        TB = self.gmi.tb
+        
+        TB = swap_gmi_183(TB)
+        
+        self.lsm   = self.gmi.get_lsm()
         self.lon   = self.gmi.lon
         self.lat   = self.gmi.lat
         self.iwp   = self.gmi.iwp
         self.rwp   = self.gmi.rwp
-        self.t0    = self.gmi.t0
+        self.t2m   = self.gmi.t0
         self.wvp   = self.gmi.wvp
         self.lst   = self.gmi.lst
-
+        self.stype = lsm_gmi2arts(self.lsm) 
 
         
-        all_inputs = [TB, self.t0[:, :, np.newaxis], 
+        all_inputs = [TB, self.t2m[:, :, np.newaxis], 
                       self.lon[:, :, np.newaxis], self.lat[:, :, np.newaxis],
                       self.stype[:, :, np.newaxis], self.wvp[:, :, np.newaxis]] 
         
-        inputnames = np.array(["ta", "t0",
+        inputnames = np.array(["ta", "t2m",
                                "lon", "lat", "stype",
                                 "wvp"])
         
@@ -84,8 +86,10 @@ class gmiSatData(Dataset):
         self.wvp  = self.wvp[ilat[:, 0], :]
         self.rwp  = self.rwp[ilat[:, 0], :]
         self.lst  = self.lst[ilat[:, 0], :]
-        self.t0   = self.t0[ilat[:, 0], :]
+        self.t2m  = self.t2m[ilat[:, 0], :]
         self.stype = self.stype[ilat[:, 0], :]
+        
+
 
             
         all_outputs = [self.iwp, self.rwp, self.wvp]    
