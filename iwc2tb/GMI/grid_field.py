@@ -29,6 +29,7 @@ def grid_field(lat, lon, iwp, gsize = 2.5, startlat = 65.0):
                 if np.any(subsetla == y):
                     lolasubset = np.where(subsetla == y)[0]
                     field[y,x] += subset[lolasubset].sum() # add up, get mean afterward
+                    
                     inds[y,x] += len(subset[lolasubset])
                     
                     
