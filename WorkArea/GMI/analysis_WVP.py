@@ -109,38 +109,71 @@ eralat = np.repeat(eralat, tcwv.shape[2], axis = 1)
 tcwvg, tcwvc = grid_field(eralat.ravel(), eralon.ravel(), tcwv.ravel(), gsize = 2.5, startlat = 65.0)
 #%%
 
-lats = np.arange(-65, 65, 2.5)
-lons = np.arange(0, 360, 2.5)
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize = [20, 20])
-   
-ax1.pcolormesh(lons, lats, y_t0, vmin = 0, vmax = 25, cmap = cm.rainbow)
+lats = np.arange(-65, 65, 2.5)
+lons = np.arange(-180, 180, 2.5)
+
+
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize = [25, 10])
+plt.tight_layout()
+m = Basemap(projection= "cyl", llcrnrlon = -180, llcrnrlat = -65, urcrnrlon = 177.5, urcrnrlat = 65, ax = ax1)
+m.drawcoastlines()   
+m.pcolormesh(lons, lats, y_t0, vmin = 0, vmax = 25, cmap = cm.rainbow)
 ax1.set_title("retrieved WVP")
 
+parallels = np.arange(-80.,80,20.)
+# labels = [left,right,top,bottom]
+m.drawparallels(parallels,labels=[True,False,True,False])
+meridians = np.arange(0.,360.,40.)
+m.drawmeridians(meridians,labels=[True,False,False,True])
 
 latmask = np.abs(lats) <= 45
 tcwvg[latmask] = np.nan
-
-cs = ax2.pcolormesh(lons, lats, tcwvg/tcwvc, 
+m = Basemap(projection= "cyl", llcrnrlon =-180, llcrnrlat = -65, urcrnrlon = 177.5, urcrnrlat = 65, ax = ax2)
+m.drawcoastlines()   
+cs = m.pcolormesh(lons, lats, tcwvg/tcwvc, 
                     vmin = 0, vmax = 25, cmap = cm.rainbow)
 ax2.set_title("ERA5")
 fig.colorbar(cs, label="WVP [kg/m2]", ax = [ax1, ax2])
-ax1.set_ylabel("latitude [deg]")
-ax2.set_ylabel("latitude [deg]")
-ax2.set_xlabel("longitude [deg]")
-
-fig.savefig("WVP.png", bbox_inches = "tight")
+#ax1.set_ylabel("latitude [deg]")
+#ax2.set_ylabel("latitude [deg]")
+#ax2.set_xlabel("longitude [deg]")
+parallels = np.arange(-80.,80,20.)
+# labels = [left,right,top,bottom]
+m.drawparallels(parallels,labels=[True,False,True,False])
+meridians = np.arange(0.,360.,40.)
+m.drawmeridians(meridians,labels=[True,False,False,True])
+fig.savefig("WVP_spatial_jan2020.png", bbox_inches = "tight")
 
 
 #%% scatter plot monthly means
 
 fig, ax = plt.subplots(1, 1, figsize = [8, 8])
-ax.scatter(tcwvg/tcwvc, y_t0)
-ax.set_xlabel("ERA5 TCWV [kg/m2] ")
-ax.set_ylabel("Retrieved GMI TCWV [kg/m2] ")
-x = np.arange(0, 30, 1)
+
+mask = np.isnan(y_t0.ravel())
+wvp  = (tcwvg/tcwvc).ravel()[~mask]
+ax.scatter(wvp, y_t0.ravel()[~mask])
+ax.set_xlabel("ERA5 WVP [kg/m2] ")
+ax.set_ylabel("Retrieved GMI WVP [kg/m2] ")
+x = np.arange(0, 35, 1)
 y = x
 ax.plot(x, y, 'k')
 ax.set_title("Monthly means (January 2020)")
+ax.text(5, 26, "r=0.97")
 
-fig.savefig("WVP_scatter_monthlymean.png", bbox_inches = "tight")    
+#m, b = np.polyfit(wvp, y_t0.ravel()[~mask], 1)
+#ax.plot(wvp, m*wvp + b, 'r')
+
+ax.set_xlim(0, 30)
+ax.set_ylim(0, 30)
+
+fig.savefig("WVP_scatter_monthlymean.png", bbox_inches = "tight") 
+
+
+
+#%%
+
+
+dataset = xarray.open_dataset("~/Dendrite/UserAreas/Kaur/WVP/gridded_WVP_202001.nc")
+   

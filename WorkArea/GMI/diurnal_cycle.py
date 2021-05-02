@@ -19,6 +19,7 @@ from iwc2tb.GMI.grid_field import grid_field
 from mpl_toolkits.basemap import Basemap
 from matplotlib import cm
 import matplotlib.colors as colors
+plt.rcParams.update({'font.size': 30})
 #%%
 def get_data(region, lst, lon, lat, y):
     
@@ -235,8 +236,6 @@ for ix in range(0, 24):
     m.pcolormesh(glon, glat, iwpgc[ix], vmin = 0, vmax = 2000, cmap = cm.rainbow)
     axes[ix].set_title("LST = " + str(ix))    
 
-#%%
- 
 
 #%%    
 bins = np.arange(0, 24, 1)
@@ -280,117 +279,4 @@ for ix, region in enumerate(regions):
     fig.savefig(  region + ".png", bbox_inches = "tight")
  
 
-#%%
-
-from iwc2tb.GMI.spareice import spareICE
-import glob
-
-sfiles = []
-
-spath = "/home/inderpreet/Dendrite/SatData/SpareICE/avhrr_345_mhs_345_angles_tsurfcfsr_all_global_h/2010/01/"
-sfiles += glob.glob(os.path.join(spath + "*/*.gz"))
-
-# spath = "/home/inderpreet/Dendrite/SatData/SpareICE/avhrr_345_mhs_345_angles_tsurfcfsr_all_global_h/2010/02/"
-# sfiles += glob.glob(os.path.join(spath + "*/*.gz"))
-
-# spath = "/home/inderpreet/Dendrite/SatData/SpareICE/avhrr_345_mhs_345_angles_tsurfcfsr_all_global_h/2009/12/"
-# sfiles += glob.glob(os.path.join(spath + "*/*.gz"))
-
-siwp = spareICE(sfiles)
-
-mask = np.abs(siwp.lat) <= 30 
-
-latbins = np.arange(-31, 31, 1.25)
-ziwp_si, ziwp_sic = bin_iwp(siwp.lat[mask], siwp.iwp[mask],latbins)
-
-with open("spareice.pickle", "wb") as f:
-    pickle.dump(siwp.lat[mask], f)
-    pickle.dump(siwp.lon[mask], f)
-    pickle.dump(siwp.iwp[mask], f)
-
-f.close()
-#%%
-
-dfiles = []
-# dpath  = "/home/inderpreet/Dendrite/SatData/DARDAR/2008/12/"
-# dfiles += glob.glob(os.path.join(dpath + "*/*.hdf"))  
-
-dpath  = "/home/inderpreet/Dendrite/SatData/DARDAR/2009/01/"
-dfiles += glob.glob(os.path.join(dpath + "*/*.hdf"))  
-
-# dpath  = "/home/inderpreet/Dendrite/SatData/DARDAR/2009/02/"
-# dfiles += glob.glob(os.path.join(dpath + "*/*.hdf"))  
-
-DIWP = []
-DLAT = []
-DLON = []
-for dfile in dfiles:
-    dardar =  DARDAR(dfile)
-    print (dfile)
-    
-    diwc    = dardar.iwc
-    dlat    = dardar.latitude
-    dlon    = dardar.longitude
-    dh      = dardar.height
-
-    dmask   = np.abs(dlat) <= 30.0
-    diwp    = np.zeros(dlat[dmask].shape[0])    
-    for i in range(diwc[dmask, :].shape[0]):
-        diwp[i] = np.trapz(diwc[i, :], dh)
-    
-
-    DIWP.append(diwp)
-    DLAT.append(dlat[dmask])
-    DLON.append(dlon[dmask])
-
-diwp = -1 * np.concatenate(DIWP)
-dlat = np.concatenate(DLAT)
-dlon = np.concatenate(DLON)
-ziwp_d, ziwp_dc = bin_iwp(dlat,  diwp, latbins)
-
-
-with open("dardar.pickle", "wb") as f:
-    pickle.dump(dlat, f)
-    pickle.dump(dlon, f)
-    pickle.dump(diwp, f)
-f.close()
-
-#%%
-outfile = files[0][:-3] + ".pickle"   
-with open(outfile, 'rb') as f:
-        ziwp = pickle.load(f)
-        ziwpc = pickle.load(f)
-        ziwp0 = pickle.load(f)
-        ziwp0c = pickle.load(f)
-
-ziwp = np.zeros([ziwp.shape[0]])
-ziwpc = np.zeros([ziwpc.shape[0]])
-ziwp0 = np.zeros([ziwp0.shape[0]])
-ziwp0c = np.zeros([ziwp0c.shape[0]])
-for file in files:
-    outfile = file[:-3] + ".pickle"   
-    with open(outfile, 'rb') as f:
-        ziwp += pickle.load(f)
-        ziwpc += pickle.load(f)
-        ziwp0 += pickle.load(f)
-        ziwp0c += pickle.load(f)
-    f.close()
-latbins = np.arange(-30, 31, 1.5)    
-fig, ax = plt.subplots(1, 1, figsize = [8, 8])
-ax.plot(ziwp[:-1]/ziwpc[:-1],latbins, '.-',  label = "GMI retrieved") 
-ax.plot( ziwp0[:-1]/ziwp0c[:-1], latbins, '.-', label = "GMI observed")
-
-latbins = np.arange(-31, 31, 1.25)
-
-
-ax.plot( (0.001 * ziwp_si/ziwp_sic), latbins, '.-', label = "Spare Ice")
-ax.plot(ziwp_d/ziwp_dc,latbins, '.-', label = "DARDAR") 
-
-ax.set_ylabel("Latitude [deg]")
-ax.set_xlabel("IWP [kg/m2]")
-ax.legend()
-fig.savefig('zonal_IWP.png', bbox_inches = "tight")   
-
-
-    
-        
+#%%        

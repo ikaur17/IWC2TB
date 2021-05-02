@@ -90,7 +90,7 @@ def to_dataarray_satdata(gmi):
     ta.attrs['lat']   = gmi.lat.ravel()[mask]
     ta.attrs['iwp']   = gmi.iwp.ravel()[mask]
     ta.attrs["rwp"]   = gmi.rwp.ravel()[mask]
-    ta.attrs["t0"]    = gmi.t0.ravel()[mask]
+    ta.attrs["t2m"]   = gmi.t0.ravel()[mask]
     ta.attrs["wvp"]   = gmi.wvp.ravel()[mask]
     
     
