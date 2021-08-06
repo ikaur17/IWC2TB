@@ -36,7 +36,9 @@ def plot_hist2d(ta, tb0, figname = "hist2d.png"):
                 ybins.min(),ybins.max()],linewidths=3,
                 linestyles='solid', colors = 'blue', locator=ticker.LogLocator(), alpha = 0.5))
 
-    
+
+
+
     
         
     counts, xbins, ybins=np.histogram2d(ta_sampled_gmi, pd_sampled_gmi,
@@ -52,7 +54,6 @@ def plot_hist2d(ta, tb0, figname = "hist2d.png"):
     plt.legend(lines, ["simulated", "observed"], loc = 'upper left')
     ax.set_xlabel(" Brightness temperature 166 V [K] ")
     ax.set_ylabel("Polarisation difference [V-H] [K]")
-
 
     # fig, ax = plt.subplots(1, 1, figsize = [8, 8])
     # ax.scatter(ta_sampled_gmi, pd_sampled_gmi, label = "observed", alpha = 0.3)

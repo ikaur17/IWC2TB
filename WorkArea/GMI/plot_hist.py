@@ -38,11 +38,11 @@ def plot_hist(ta, tb, figname = "contour2d.png"):
     ydat1 = ydat[ind][hhsub < thresh]
     #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
     
-    cs = ax.contour(np.flipud(hh.T),colors= 'red',
+    cs = ax.contour(np.flipud(hh.T),colors= "tab:blue",
                     extent=np.array(xyrange).flatten(), 
                 locator= ticker.LogLocator(), origin='upper')
 #    plt.colorbar()   
-    ax.plot(xdat1, ydat1, '.',color='red', alpha = 0.2)
+    ax.plot(xdat1, ydat1, '.',color="tab:blue", alpha = 0.2)
     
     hh, locx, locy = np.histogram2d(tb[:, 0], tb[:, 0] - tb[:, 1], 
                                     range=xyrange, bins=bins, density = True)
@@ -57,15 +57,40 @@ def plot_hist(ta, tb, figname = "contour2d.png"):
     ydat1 = ydat[ind][hhsub < thresh]
     #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
     
-    cs_gmi = ax.contour(np.flipud(hh.T),colors = 'blue',
+    cs_gmi = ax.contour(np.flipud(hh.T),colors = "tab:red",
                         extent=np.array(xyrange).flatten(), 
                 locator=ticker.LogLocator(),  origin='upper')
  #  plt.colorbar()   
-    ax.plot(xdat1, ydat1, '.',color='blue',  alpha = 0.2)
+    ax.plot(xdat1, ydat1, '.',color="tab:red",  alpha = 0.2)
     lines = [ cs.collections[0], cs_gmi.collections[0]]
 #    labels = ['CS1_neg','CS1_pos','CS2_neg','CS2_pos']
     plt.legend(lines, ["simulated", "observed"], loc = 'upper left')
     ax.set_xlabel(" Brightness temperature 166 V [K] ")
     ax.set_ylabel("Polarisation difference [V-H] [K]")
+    
+    # p = [(222,52), (270,52),  (270,16), (222,16),]
+    # poly = plt.Polygon(p, ec="tab:gray", fc = None, fill = 0, ls = '--', lw = 2)
+    # ax.add_patch(poly)
+    # ax.annotate('surface', (265, 54.5),
+    #         #xytext=(0.8, 0.9), textcoords='axes fraction',
+    #         fontsize=28,
+    #         horizontalalignment='right', verticalalignment='top')
+    
+    # p = [(150,14), (250,14), (250,-2), (150,-2)]
+    # poly = plt.Polygon(p, ec="tab:purple", fc = None, fill = 0, ls = '--', lw = 2)
+    # ax.add_patch(poly)
+    # ax.annotate('cloudy', (172, 16.5),
+    #         #xytext=(0.8, 0.9), textcoords='axes fraction',
+    #         fontsize=28,
+    #         horizontalalignment='right', verticalalignment='top')
+    
+    
+    # p = [(255,6.5), (280,6.5), (280, -3),(255, -3)]
+    # poly = plt.Polygon(p, ec="tab:brown", fc = None, fill = 0, ls = '--', lw = 2)
+    # ax.add_patch(poly)
+    # ax.annotate('clear', (290, 9),
+    #         #xytext=(0.8, 0.9), textcoords='axes fraction',
+    #         fontsize=28,
+    #         horizontalalignment='right', verticalalignment='top')
 
     fig.savefig("Figures/" + figname, bbox_inches = "tight")    

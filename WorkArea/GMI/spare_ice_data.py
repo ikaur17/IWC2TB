@@ -14,16 +14,16 @@ import pickle
 import numpy as np
 
 #-----------------------------------------
-outfile = "spareice_jan2009"
+outfile = "spareice_jul2009"
 year = "2009"
-month = "01"
+month = "06"
 
 #-----------------------------------------
 
 sfiles = []
 spath = os.path.join("/home/inderpreet/Dendrite/SatData/SpareICE/avhrr_345_mhs_345_angles_tsurfcfsr_all_global_h/", 
                      year , month)
-sfiles += glob.glob(os.path.join(spath + "*/*.gz"))
+sfiles += glob.glob(os.path.join(spath , "*/*.gz"))
 
 # spath = "/home/inderpreet/Dendrite/SatData/SpareICE/avhrr_345_mhs_345_angles_tsurfcfsr_all_global_h/2010/02/"
 # sfiles += glob.glob(os.path.join(spath + "*/*.gz"))
