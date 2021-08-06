@@ -1,0 +1,435 @@
+%% Copernicus Publications Manuscript Preparation Template for LaTeX Submissions
+%% ---------------------------------
+%% This template should be used for copernicus.cls
+%% The class file and some style files are bundled in the Copernicus Latex Package, which can be downloaded from the different journal webpages.
+%% For further assistance please contact Copernicus Publications at: production@copernicus.org
+%% https://publications.copernicus.org/for_authors/manuscript_preparation.html
+
+
+%% Please use the following documentclass and journal abbreviations for preprints and final revised papers.
+
+%% 2-column papers and preprints
+\documentclass[amt, manuscript]{copernicus}
+
+
+
+%% \usepackage commands included in the copernicus.cls:
+%\usepackage[german, english]{babel}
+%\usepackage{tabularx}
+%\usepackage{cancel}
+%\usepackage{multirow}
+%\usepackage{supertabular}
+%\usepackage{algorithmic}
+%\usepackage{algorithm}
+%\usepackage{amsthm}
+%\usepackage{float}
+%\usepackage{subfig}
+%\usepackage{rotating}
+
+
+\begin{document}
+
+\title{Physically-based all-sky retrievals of ice water path using the GPM 
+Microwave Imager}
+
+
+% \Author[affil]{given_name}{surname}
+
+\Author[1]{Inderpreet}{Kaur}
+\Author[1]{Patrick}{Eriksson}
+\Author[1]{Vasileios}{Barlakas}
+\Author[1]{Simon}{Pfreundschuh}
+
+
+\affil[1]{Chalmers University of Technology, Gothenburg, Sweden}
+
+%% The [] brackets identify the author with the corresponding affiliation. 1, 2, 3, etc. should be inserted.
+
+%% If an author is deceased, please mark the respective author name(s) with a dagger, e.g. "\Author[2,$\dag$]{Anton}{Smith}", and add a further "\affil[$\dag$]{deceased, 1 July 2019}".
+
+%% If authors contributed equally, please mark the respective author names with an asterisk, e.g. "\Author[2,*]{Anton}{Smith}" and "\Author[3,*]{Bradley}{Miller}" and add a further affiliation: "\affil[*]{These authors contributed equally to this work.}".
+
+
+\correspondence{Inderpreet Kaur (kauri@chalmers.se)}
+
+\runningtitle{Ice water path retrievals}
+
+\runningauthor{Kaur}
+
+
+
+
+
+\received{}
+\pubdiscuss{} %% only important for two-stage journals
+\revised{}
+\accepted{}
+\published{}
+
+%% These dates will be inserted by Copernicus Publications during the typesetting process.
+
+
+\firstpage{1}
+
+\maketitle
+
+
+
+\begin{abstract}
+Existing datasets of ice water path (IWP) based on passive observations 
+either show a clear low bias compared to radar retrievals or are 
+completely empirical. It is here shown that much more accurate 
+physically-based passive retrievals are possible. The high-frequency 
+channels of the GMI radiometer are used for demonstration. The progress 
+is mainly achieved by detailed radiative transfer simulations, that 
+closely mimic the real observations statistically. A novel aspect is 
+that particle orientation is considered and polarisation signatures in 
+the observations can be exploited. The simulations are used as input to 
+a machine learning retrieval algorithm. Both the simulations and the 
+inversions are made in a Bayesian fashion. As a consequence, reasonably 
+complete distributions of IWP are provided and the retrievals can be 
+considered as all-sky in contrast to most other datasets, limited to 
+either the low or high end of the IWP distribution. Example results and 
+applications are shown. For example, a clear diurnal variation of IWP in 
+the Tropics is confirmed. So far satellite-based cloud radars are only 
+nadir-pointing while these passive retrievals have a swath width of ? 
+km, and this broad coverage should provide opportunities to assess model 
+cloud parametrisations in new manners
+
+\end{abstract}
+
+
+\copyrightstatement{TEXT} %% This section is optional and can be used for copyright transfers.
+
+
+\introduction  %% \introduction
+
+Ice Clouds have a profound impact the Earth's radiation balance. They reflect the short and long wave radiation and emit long wave radiation contributing to the Earth’s energy balance and hydrological cycle \citep{liou:influ:86}. The total radiative forcing is dependent both on the microphysical and macrophysical properties, such as, the spatial distribution of ice particles, particle orientation, ice water content, etc. However, due to the complex vertical and spatio-temporal heterogeneity associated with ice clouds, the knowledge on the global distribution of atmospheric ice is deficient and not well captured by the models \citep{wilson:theim:00}. Significant uncertainties, in both meteorological and climate models, are inflicted by the simplifications introduced to resolve the complex structures \citep{reinhardt:impac:04}.
+
+Ice water content (IWC)  is a key variable used to measure the atmospheric ice. It is defined as the bulk mass of ice in the atmosphere and the column integrated bulk mass is the ice water path (IWP). The existing space based retrieval systems use observations from either active or passive microwave sensors or exploit the synergies between the two. The 94\,\,GHz radar onboard Cloudsat is the first active sensor to give information on the vertical structure of clouds on a global scale. The synergy of the radar and CALIPSO lidar is the most accurate observation system providing global distribution of atmospheric ice, especially for the tropical ice clouds \citep{protat:theev:10}. This combination can sense ice hydrometeors ranging from thin cirrus to precipitating ice \citep{stephens:cloud:18}. However, the limited spatio-temporal sampling cannot fully resolve the  variability of atmospheric ice on both local and global scales.
+
+Despite the lack of scanning capability and single-frequency sensor, the researchers have benefited from tremendously from Cloudsat. Multiple IWP and IWC retreival algorithms based on passive sensors but constrained by Cloudsat observations have evolved. For example, \citet{gong:cloud:14} describe an empirical model to retreive IWP from Microwave Humidty Sounder (MHS) high frequency channels. The Synergistic Passive Atmospheric Retrieval Experiment-ICE (Spare-Ice) product \citet{holl:spare:14} is another empirical attempt which combines optical,microwave and infrared sensors to retrieve IWP. The usage infrared sensors can account for smaller ice particles in the cloud, they cannot sense the entire water column. 
+
+The global atmopsheric ice estimates from passive microwave sensors have proven to be successful capturing the diurnal cycle and interseasonal fluctuations. However, the inconsistency among different cloud ice observations leads to model uncertainties. A detailed comparison of different space borne IWP measurements by \citet{duncan:anupd:18, eliasson:asses:11} highlights that large discrepancies exist between different IWP estimates as the space-borne remote sensing techniques still cannot fully resolve the atmospheric ice properties. The limitations associated with sensor sensitivities and the oversimplified microphysical assumptions are mostly to blame. The sensor limitations will be overcome to a certain extent with the launch of new sensors like Ice Cloud Imager (ICI). ICI will will sense ice-clouds using sub-millimter(sub-mm) wavelengths and shall shall bridge the sensitivity gap between microwave and infrared sensors. However, the improvements in microphysical assumptions has seen slow progress. The physically based retrieval techniques associate the simulated brightness temperatures to the ice cloud structures, but most radiative transfer based retrieval algorithms, focusing on ice clouds, assume spherical or randomly oriented hydrometeors, e.g. \citep{evans:icecl:05, Zhao:retri:02}. The simplifications are often introduced to reduce computational loads, but at the same time, properties of ice-hydrometeors are still not fully understood. The ice hydrometeors exhibit dichroism effects resulting in polarization difference (PD) between the radiances measured by horizontal(H) and vertical(V) polarizations. The PD exhibited by oriented particles is generally higher than the randomly oriented ones. Constraining the microphysical assumptions to one or few habits and neglecting  orientation effects contributes to a non-zero bias in the retrievals. High inaccuracies also are connected to areas with large PD. For example, \citet{gong:micro:17} and \citep{miao:thepo:03} argue that retrieval of cloud ice has a strong connection to the polarimetric difference introduced by oriented particles, particularly for regions with convective outflow. 
+
+Zeroing on an ice model incorporating accurate ice model remains a challenge, however, microwave sensors measuring different polarizations can help in inferring the properties of ice hydrometeors. The space borne sensors can provide accurate measures of the polarimetric differences and their potential in retrieval of ice cloud properties have have been long recognised. For example, \citep{coy:sensi:20}, have shown  that incorporating polarimetric measurements improve the retrievals of ice cloud microphysics such as particle effective diameter (D$_{eff}$), while \citep{hioki:degre:16} analyse the ice particle surface roughness from polarimetric observations. However, there is a general lack of  IWC and IWP retrieval methods taking PD into account.
+
+In this study, we explore the benefits of incorporating polarimetric measurements for retrievals of IWP using Global Precipitation Measurement (GPM) Microwave Imager (GMI). We aim for physical based measurements of IWP from passive microwave instruments, which can be bias-free and better performing than existing reanalyses and satellite based products. Currently, GMI is the only sensor which senses in dual polarisation mode above 100\,\,GHz. The Bayesian retrieval algorithm utilized by GPM for precipiation is also used for compute IWP from precipitating hydrometeors. The ice hydrometeors are not covered as the apriori database is generated for hydrometeor profiles covered by GPM Dual Precipitraion radar (DPR), which is sensitive only to precipitating hydrometeors. 
+
+We apply a Bayesian machine learning algorithm, Quantile Regression Neural Network (QRNN) \citep{pfreundschuh:aneur:18} to retrieve IWP from a database of atmospheric profiles generated using radiative transfer model. As a first step, a database representing the GMI measurements for a variety of atmospheric conditions is created. We avoid the ice-scattering calculations but the impact of polarisation is introduced using the scheme proposed by \citet{barlakas:intro:21}. They had introduced a simple scaling factor to mimic the effects of hydrometeor orientation. In this study, the simple scaling factor is extended to cover different magnitudes of polarimetric signatures observed by the Global Precipitation Measurement (GPM) Microwave Imager (GMI) 166 GHz channels. Further, the retrieval is applied to real GMI measurements and the results are compared against the existing IWP observation sets. We investigate the sensitivity of retrieved IWP to polarization differences and  quantify the errors arsing due to assumption of unpolarised signals. 
+
+\section{Data}
+
+\subsection{GPM GMI}
+The GPM GMI instrument is a conical microwave radiometer, which provides a near global coverage of the precipitation estimates. It has a swath of 885\,\,km  and an earth incidence angle of 52.8$^{\circ}$. It instrument has thirteen microwave channels ranging from 10\,\,GHz to 183\,\,GHz which are sensitive to the different forms of precipitation. In this study, we use only the four high frequency measurements between 166 GHz and 183 GHz (Table~\ref{tab:gmi_channels}). These channels are sensitive to the precipitating ice and water vapour.
+\subsubsection{L1B radiances}
+
+In this study, the retrieval is made from L1B radiances. The details of L1B algorithm are found in \citet{}. L1B radiances are gelocated and calibrated Level 0 counts at native resolution. 
+
+\subsubsection{L3 IWP product}
+For comparison, we also utilize GMI IWP product.  
+
+\subsection{Cloudsat}
+
+
+\section{Radiative transfer simulations}
+
+\subsection{ARTS}
+\label{sec:arts}
+
+\subsection{Polarisation correction}
+\label{sec:scaling_factor}
+The simulations cover four GMI channels: 166V, 166H, 183$\pm$3
+and 183$\pm$7\,GHz. The dbZ based
+system described in \citet{ekelund:using:20} is followed. The
+main inputs are radar reflectivities from CloudSat and ERA5 reanalysis data.
+Hydrometeor particles are assumed to be ARO (Sect.~\ref{sec:arts}), where the
+approximation from \citet{barlakas:intro:21} is extended to operate with 
+a random scaling factor (instead of a fixed one), as well as being applied also
+on the CloudSat radar data.
+
+\subsection{Snow emissivity model}
+%label{sec:snow_emissivity}
+The emissivities over land and water are taken from climatologies. However, for
+snow and sea ice surface types (identified using ERA5 data) an empirical snow
+and ice emissivity model was developed, based on the studies of
+\citet{harlow:2009:milli, harlow:2012:tundr} and \citet{hewison:2002:airbo}. If
+$\epsilon_{193}, \epsilon_{159}$ represents the emissivities for 193\,GHz and
+159\,GHz respectively, then
+\begin{align}
+\epsilon_{193}& = \min({N(\mu_{193}, \sigma_{193}^{2}), 1});\, \mu_{193} = 0.78, \sigma_{193} = 0.07 \label{eq:1}\\
+\epsilon_{159}& = \min(\epsilon_{193} - N(\mu_{159}, \sigma_{159}^{2}), 1) ;\,  \mu_{159} = 0.02, \sigma_{159} = 0.02\,\label{eq:2}
+\end{align}
+where, $N(\mu, \sigma^{2})$ represents the standard normal distribution with
+mean $\mu$ and standard deviation $\sigma$. The differences between the
+horizontal and vertical polarisations for both frequencies are 
+approximated through a uniform random distribution.
+
+\begin{align}
+d_{159}& = U(a_1, b_1) ;\, a_1 = 0.005, b_1 = 0.055\\
+d_{193}& = d_{159} - U(a_2, b_2) ;\, a_2 = 0.015, b_2 = 0.025 \,
+\end{align}
+where, $U(a, b)$ represents a uniform distribution between a and b. 
+
+\subsection{Particle shape and orientation}
+
+\subsection{Retrieval Algorithm}
+
+\section{Results}
+\subsection{Simulations}
+
+\subsection{Retrieval results: Test data}
+
+\subsection{Retrieval results: GMI observations}
+
+\section{Discussion}
+
+
+\conclusions  %% \conclusions[modified heading if necessary]
+TEXT
+
+%% The following commands are for the statements about the availability of data sets and/or software code corresponding to the manuscript.
+%% It is strongly recommended to make use of these sections in case data sets and/or software code have been part of your research the article is based on.
+
+\codeavailability{TEXT} %% use this section when having only software code available
+
+
+\dataavailability{TEXT} %% use this section when having only data sets available
+
+
+\codedataavailability{TEXT} %% use this section when having data sets and software code available
+
+
+\sampleavailability{TEXT} %% use this section when having geoscientific samples available
+
+
+\videosupplement{TEXT} %% use this section when having video supplements available
+
+
+\appendix
+\section{}    %% Appendix A
+
+\subsection{}     %% Appendix A1, A2, etc.
+
+
+\noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
+
+%% Regarding figures and tables in appendices, the following two options are possible depending on your general handling of figures and tables in the manuscript environment:
+
+%% Option 1: If you sorted all figures and tables into the sections of the text, please also sort the appendix figures and appendix tables into the respective appendix sections.
+%% They will be correctly named automatically.
+
+%% Option 2: If you put all figures after the reference list, please insert appendix tables and figures after the normal tables and figures.
+%% To rename them correctly to A1, A2, etc., please add the following commands in front of them:
+
+\appendixfigures  %% needs to be added in front of appendix figures
+
+\appendixtables   %% needs to be added in front of appendix tables
+
+%% Please add \clearpage between each table and/or figure. Further guidelines on figures and tables can be found below.
+
+
+
+\authorcontribution{TEXT} %% this section is mandatory
+
+\competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present
+
+\disclaimer{TEXT} %% optional section
+
+\begin{acknowledgements}
+TEXT
+\end{acknowledgements}
+
+
+
+
+%% REFERENCES
+
+\bibliographystyle{copernicus}
+\bibliography{references.bib}
+
+\begin{thebibliography}{}
+
+\bibitem[AUTHOR(YEAR)]{LABEL1}
+REFERENCE 1
+
+\bibitem[AUTHOR(YEAR)]{LABEL2}
+REFERENCE 2
+
+\end{thebibliography}
+
+%% Since the Copernicus LaTeX package includes the BibTeX style file copernicus.bst,
+%% authors experienced with BibTeX only have to include the following two lines:
+%%
+%% \bibliographystyle{copernicus}
+%% \bibliography{example.bib}
+%%
+%% URLs and DOIs can be entered in your BibTeX file as:
+%%
+%% URL = {http://www.xyz.org/~jones/idx_g.htm}
+%% DOI = {10.5194/xyz}
+
+
+%% LITERATURE CITATIONS
+%%
+%% command                        & example result
+%% \citet{jones90}|               & Jones et al. (1990)
+%% \citep{jones90}|               & (Jones et al., 1990)
+%% \citep{jones90,jones93}|       & (Jones et al., 1990, 1993)
+%% \citep[p.~32]{jones90}|        & (Jones et al., 1990, p.~32)
+%% \citep[e.g.,][]{jones90}|      & (e.g., Jones et al., 1990)
+%% \citep[e.g.,][p.~32]{jones90}| & (e.g., Jones et al., 1990, p.~32)
+%% \citeauthor{jones90}|          & Jones et al.
+%% \citeyear{jones90}|            & 1990
+
+
+
+%% FIGURES
+
+%% When figures and tables are placed at the end of the MS (article in one-column style), please add \clearpage
+%% between bibliography and first table and/or figure as well as between each table and/or figure.
+
+% The figure files should be labelled correctly with Arabic numerals (e.g. fig01.jpg, fig02.png).
+
+
+%% ONE-COLUMN FIGURES
+
+%%f
+%\begin{figure}[t]
+%\includegraphics[width=8.3cm]{FILE NAME}
+%\caption{TEXT}
+%\end{figure}
+%
+%%% TWO-COLUMN FIGURES
+%
+%%f
+%\begin{figure*}[t]
+%\includegraphics[width=12cm]{FILE NAME}
+%\caption{TEXT}
+%\end{figure*}
+%
+%
+%%% TABLES
+%%%
+%%% The different columns must be seperated with a & command and should
+%%% end with \\ to identify the column brake.
+%
+%%% ONE-COLUMN TABLE
+%
+%%t
+%\begin{table}[t]
+%\caption{TEXT}
+%\begin{tabular}{column = lcr}
+%\tophline
+%
+%\middlehline
+%
+%\bottomhline
+%\end{tabular}
+%\belowtable{} % Table Footnotes
+%\end{table}
+%
+%%% TWO-COLUMN TABLE
+%
+%%t
+%\begin{table*}[t]
+%\caption{TEXT}
+%\begin{tabular}{column = lcr}
+%\tophline
+%
+%\middlehline
+%
+%\bottomhline
+%\end{tabular}
+%\belowtable{} % Table Footnotes
+%\end{table*}
+%
+%%% LANDSCAPE TABLE
+%
+%%t
+%\begin{sidewaystable*}[t]
+%\caption{TEXT}
+%\begin{tabular}{column = lcr}
+%\tophline
+%
+%\middlehline
+%
+%\bottomhline
+%\end{tabular}
+%\belowtable{} % Table Footnotes
+%\end{sidewaystable*}
+%
+%
+%%% MATHEMATICAL EXPRESSIONS
+%
+%%% All papers typeset by Copernicus Publications follow the math typesetting regulations
+%%% given by the IUPAC Green Book (IUPAC: Quantities, Units and Symbols in Physical Chemistry,
+%%% 2nd Edn., Blackwell Science, available at: http://old.iupac.org/publications/books/gbook/green_book_2ed.pdf, 1993).
+%%%
+%%% Physical quantities/variables are typeset in italic font (t for time, T for Temperature)
+%%% Indices which are not defined are typeset in italic font (x, y, z, a, b, c)
+%%% Items/objects which are defined are typeset in roman font (Car A, Car B)
+%%% Descriptions/specifications which are defined by itself are typeset in roman font (abs, rel, ref, tot, net, ice)
+%%% Abbreviations from 2 letters are typeset in roman font (RH, LAI)
+%%% Vectors are identified in bold italic font using \vec{x}
+%%% Matrices are identified in bold roman font
+%%% Multiplication signs are typeset using the LaTeX commands \times (for vector products, grids, and exponential notations) or \cdot
+%%% The character * should not be applied as mutliplication sign
+%
+%
+%%% EQUATIONS
+%
+%%% Single-row equation
+%
+%\begin{equation}
+%
+%\end{equation}
+%
+%%% Multiline equation
+%
+%\begin{align}
+%& 3 + 5 = 8\\
+%& 3 + 5 = 8\\
+%& 3 + 5 = 8
+%\end{align}
+%
+%
+%%% MATRICES
+%
+%\begin{matrix}
+%x & y & z\\
+%x & y & z\\
+%x & y & z\\
+%\end{matrix}
+%
+%
+%%% ALGORITHM
+%
+%\begin{algorithm}
+%\caption{...}
+%\label{a1}
+%\begin{algorithmic}
+%...
+%\end{algorithmic}
+%\end{algorithm}
+%
+%
+%%% CHEMICAL FORMULAS AND REACTIONS
+%
+%%% For formulas embedded in the text, please use \chem{}
+%
+%%% The reaction environment creates labels including the letter R, i.e. (R1), (R2), etc.
+%
+%\begin{reaction}
+%%% \rightarrow should be used for normal (one-way) chemical reactions
+%%% \rightleftharpoons should be used for equilibria
+%%% \leftrightarrow should be used for resonance structures
+%\end{reaction}
+%
+%
+%%% PHYSICAL UNITS
+%%%
+%%% Please use \unit{} and apply the exponential notation
+
+
+\end{document}
