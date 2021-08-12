@@ -44,6 +44,7 @@ def to_dataarray(gmi):
     ta.attrs["z0"]    = gmi.z0   
     ta.attrs["t2m"]   = gmi.t2m
     ta.attrs["skt"]   = gmi.skt
+    ta.attrs["pratio"]= gmi.pratio
     return ta
 
 #%%
@@ -85,13 +86,14 @@ def to_dataarray_satdata(gmi):
     ta = xarray.DataArray(ta[mask], coords = [cases, channels], 
                           dims = ['cases', 'channels'], name = 'ta')
     
-    ta.attrs['stype']   = stype[mask]
-    ta.attrs['lon']   = gmi.lon.ravel()[mask]
-    ta.attrs['lat']   = gmi.lat.ravel()[mask]
-    ta.attrs['iwp']   = gmi.iwp.ravel()[mask]
-    ta.attrs["rwp"]   = gmi.rwp.ravel()[mask]
-    ta.attrs["t2m"]   = gmi.t0.ravel()[mask]
-    ta.attrs["wvp"]   = gmi.wvp.ravel()[mask]
+    ta.attrs['stype']     = stype[mask]
+    ta.attrs['lon']       = gmi.lon.ravel()[mask]
+    ta.attrs['lat']       = gmi.lat.ravel()[mask]
+    ta.attrs['iwp']       = gmi.iwp.ravel()[mask]
+    ta.attrs["rwp"]       = gmi.rwp.ravel()[mask]
+    ta.attrs["t2m"]       = gmi.t0.ravel()[mask]
+    ta.attrs["wvp"]       = gmi.wvp.ravel()[mask]
+
     
     
     lst = gmi.lst.ravel()[mask]
@@ -149,45 +151,98 @@ def divide_test_train(TB, randomList):
         
     return TB_test    
 
+
 #%%
 if __name__ == "__main__":
     
-    inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_testsimulations/test_f07')  
-    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_testsimulations/test_si') 
-    inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65/')
+    #inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65/')  
+    inpath1   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.1/esa') 
+    #inpath    =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65/')
  
      
-    matfiles  = glob.glob(os.path.join(inpath, "2010_*.mat"))
-    #matfiles1 = glob.glob(os.path.join(inpath1, "2010_*.mat"))
+    #matfiles  = glob.glob(os.path.join(inpath, "2010_*.mat"))
+    matfiles1 = glob.glob(os.path.join(inpath1, "2009_*.mat"))
     
     #matfiles += matfiles1
     
-    gmi       = GMI(matfiles)
+    gmi       = GMI(matfiles1[:])
+    
+#%% change path
+    # arofiles = []
+    # basenames = []
+    # aropath = os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.1') 
+    # for file in matfiles1:
+        
+    #     basename = os.path.basename(file)
+    #     file = os.path.join(aropath, basename)
+        
+    #     arofiles.append(file)
+    #     basenames.append(basename)
+        
+    # gmi = GMI(arofiles[:])  
+    
+
+    
 #%%    
     ta        = to_dataarray(gmi)
     cases     = ta.cases.values 
     
     randomList = random.sample(range(0, len(cases)), len(cases))
-    lim       = int(len(cases) * 0.05)
+    lim       = int(len(cases) * 0.2)
     
 #%%    
     ta_test = divide_test_train(ta, randomList[:lim])
-    ta_test.to_netcdf('TB_GMI_test_multiple_t.nc', 'w')
+    ta_test.to_netcdf('/home/inderpreet/Dendrite/Projects/IWP/GMI/training_data/TB_GMI_test_jan_esa.nc', 'w')
     
     ta_train = divide_test_train(ta, randomList[lim:])
-    ta_train.to_netcdf('TB_GMI_train_multiple_t.nc', 'w')
+    ta_train.to_netcdf('/home/inderpreet/Dendrite/Projects/IWP/GMI/training_data/TB_GMI_train_jan_esa.nc', 'w')
     
 #%%
-    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2021/19')
-    inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/01/01')
-    gmifiles = glob.glob(os.path.join(inpath, "*.HDF5"))
+#     inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2021/19')
+#     inpath   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2019/01/01')
+#     gmifiles = glob.glob(os.path.join(inpath, "*.HDF5"))
 
-    gmi_s    = GMI_Sat(gmifiles[2:3])
-#%%    
-    ta_s      = to_dataarray_satdata(gmi_s)
+#     gmi_s    = GMI_Sat(gmifiles[2:3])
+# #%%    
+#     ta_s      = to_dataarray_satdata(gmi_s)
 
     
-    ta_s.to_netcdf('TB_GMI_test_satdata.nc', 'w')
-#%%    
+#     ta_s.to_netcdf('TB_GMI_test_satdata.nc', 'w')
+# #%%    
+   
+#%% find files not used in training for ARO and TRO
+    aropath = os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.0') 
+    allfiles1 = glob.glob(os.path.join(aropath, "2010_00*.mat"))
+    allfiles2 = glob.glob(os.path.join(aropath, "2010_01*.mat"))
+    allfiles3 = glob.glob(os.path.join(aropath, "2010_02*.mat"))
+    allfiles = allfiles1 + allfiles2 + allfiles3
+    basenames_all = []
     
+    for file in allfiles:
+        
+        basename = os.path.basename(file)
+        file = os.path.join(aropath, basename)
+        
+        arofiles.append(file)
+        basenames_all.append(basename)
     
+    uniquefiles = set(basenames_all).symmetric_difference(set(basenames))
+    
+    uniquefiles_all = []
+    for file in uniquefiles:
+      
+        uniquefiles_all.append(os.path.join(aropath, file))  
+    
+    gmi = GMI(uniquefiles_all)
+    
+#%% test dataset from 2010 data
+    
+    aropath = os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.0') 
+    allfiles1 = glob.glob(os.path.join(aropath, "2010_0*.mat"))
+    
+    gmi = GMI(allfiles1)
+    
+    ta_test        = to_dataarray(gmi)
+    ta_test.to_netcdf('/home/inderpreet/Dendrite/Projects/IWP/GMI/training_data/TB_GMI_test_jan.nc', 'w')
+    
+

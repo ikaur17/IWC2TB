@@ -10,7 +10,6 @@ Created on Thu Jun 24 10:50:46 2021
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray
-=
 from matplotlib import cm
 import matplotlib.colors as colors
 from mpl_toolkits.basemap import Basemap
