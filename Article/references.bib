@@ -9,6 +9,7 @@
 @string{I3ETGRS = {IEEE T. Geosci. Remote}}
 @string{I3EGRS  = {IEEE Geosci. Remote Sens.}}
 @string{JAOT    = {J. Atmos. Oceanic Technol.}}
+@string{JAS    =  {J. Atmos. Sci.}}
 @string{JCAM    = {J. Clim. Appl. Mete.}}
 @string{JGR     = {J. Geophys. Res.}}
 @string{JQSRT   = {J. Quant. Spectrosc. Radiat. Transfer}}
@@ -16,6 +17,20 @@
 @string{RS      = {Radio Sci.}}
 @string{T       = {Tellus}}
 @string{JAMC    = {J. Appl. Meteorol. Clim.}}
+
+@article{aires2011tool,
+	title={{A Tool to Estimate Land-Surface Emissivities at Microwave frequencies (TELSEM) for use in numerical weather prediction}},
+	author={Aires, Filipe and Prigent, Catherine and Bernardo, Fr{\'e}d{\'e}ric and Jim{\'e}nez, Carlos and Saunders, Roger and Brunel, Pascal},
+	journal=QJRMS,
+	volume={137},
+	number={656},
+	pages={690--699},
+	year={2011},
+	publisher={Wiley Online Library}
+}
+
+
+
 
 
 @Article{barlakas:intro:21,
@@ -32,7 +47,7 @@
 @article{coy:sensi:20,
 	author = {Coy, James J. and Bell, Adam and Yang, Ping and Wu, Dong L.},
 	title = {Sensitivity Analyses for the Retrievals of Ice Cloud Properties From Radiometric and Polarimetric Measurements in Sub-mm/mm and Infrared Bands},
-	journal = JGRA,
+	journal = JGR,
 	volume = {125},
 	number = {13},
 	pages = {e2019JD031422},
@@ -73,6 +88,25 @@
 	DOI = {10.5194/acp-11-375-2011}
 }
 
+@article{ellison2007permittivity,
+	title={Permittivity of pure water, at standard atmospheric pressure, over the frequency range 0--25 THz and the temperature range 0--100 C},
+	author={Ellison, WJ},
+	journal={J. Phys. Chem. Ref. Data},
+	volume={36},
+	number={1},
+	pages={1--18},
+	year={2007},
+}
+
+@dataset{era5:18,
+	author    = {H. Hersbach and B. Bell and P. Berrisford and G. Biavati and A. Hor\'anyi and J. Mu\~noz Sabater and J. Nicolas and C. Peubey and R. Radu and  I. Rozum and D. Schepers and A. Simmons and C. Soci and D. Dee and J-N. Th\'epaut},
+	title     = { ERA5 hourly data on single levels from 1979 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS).},
+	year      = {2018},
+	doi       = {10.24381/cds.adbb2d47},
+	publisher = {Copernicus Climate Change Service (C3S) Climate Data Store (CDS)},
+	note      = {Last accessed on 10 August 2021},
+}
+
 @article{eriksson:arts2:11,
   author    = {P. Eriksson and S. A. Buehler and C. P. Davis and C. Emde and
                O. Lemke},
@@ -85,6 +119,20 @@
   doi       = {10.1016/j.jqsrt.2011.03.001},
   copyright = {Elsevier},
 }
+
+@article{eriksson:agene:18,
+	AUTHOR = {P. Eriksson and R. Ekelund and J. Mendrok and M. Brath and
+	O. Lemke and S. A. Buehler},
+	TITLE = {A general database of hydrometeor single scattering properties at
+	microwave and sub-millimetre wavelengths},
+	JOURNAL = ESSD,
+	VOLUME = {10},
+	YEAR = {2018},
+	NUMBER = {3},
+	PAGES = {1301--1326},
+	DOI = {10.5194/essd-10-1301-2018},
+}
+
 
 @article{eriksson:towar:20,
   AUTHOR = {P. Eriksson and B. Rydberg and V. Mattioli and A. Thoss and
@@ -108,6 +156,17 @@
 	number = "6",
 	doi = "10.1175/JAM2250.1",
 	pages=      "839 - 859",}
+
+@article {field:snows:07,
+	author = "Paul R. Field and Andrew J. Heymsfield and Aaron Bansemer",
+	title = "Snow Size Distribution Parameterization for Midlatitude and Tropical Ice Clouds",
+	journal = JAS,
+	year = "2007",
+	volume = "64",
+	number = "12",
+	doi = "10.1175/2007JAS2344.1",
+	pages=      "4346 - 4365",
+}
 
 @Article{gong:cloud:14,
 	AUTHOR = {Gong, J. and Wu, D. L.},
@@ -152,8 +211,10 @@
 	doi={10.1109/TGRS.2012.2193132}}
 
 @INPROCEEDINGS{hewison:2002:airbo,  
-	author={Hewison, T.J. and Selbach, N. and Heygster, G. and Taylor, J.P. and McGrath, A.J.},  booktitle={IEEE International Geoscience and Remote Sensing Symposium},   
-	title={Airborne measurements of {Arctic} sea ice, glacier and snow emissivity at 24-183 {GHz}},   year={2002},  
+	author={Hewison, T.J. and Selbach, N. and Heygster, G. and Taylor, J.P. and McGrath, A.J.},  
+	booktitle={IEEE International Geoscience and Remote Sensing Symposium},   
+	title={Airborne measurements of {Arctic} sea ice, glacier and snow emissivity at 24-183 {GHz}},  
+	year={2002},  
 	volume={5},  
 	number={},  
 	pages={2851-2855 vol.5},  
@@ -174,7 +235,7 @@
 @article{holl:spare:14,
 	author = {Holl, G. and Eliasson, S. and Mendrok, J. and Buehler, S. A.},
 	title = {SPARE-ICE: Synergistic ice water path from passive operational sensors},
-	journal = JGRA,
+	journal = JGR,
 	volume = {119},
 	number = {3},
 	pages = {1504-1523},
@@ -194,6 +255,28 @@
 	doi = "10.1175/1520-0493(1986)114<1167:IOCCOW>2.0.CO;2",
 	pages=      "1167 - 1199",}
 
+@article {marchand:hydro:08,
+	author = "Roger  Marchand and Gerald G.  Mace and Thomas  Ackerman and Graeme  Stephens",
+	title = "Hydrometeor Detection Using Cloudsat -- An Earth-Orbiting 94-GHz Cloud Radar",
+	journal = JAOT,
+	year = "2008",
+	volume = "25",
+	number = "4",
+	doi = "10.1175/2007JTECHA1006.1",
+	pages=      "519 - 533",
+}
+
+@article {marshall:thedi:48,
+	author = "J. S.  Marshall and W. Mc K.  Palmer",
+	title = "THE DISTRIBUTION OF RAINDROPS WITH SIZE",
+	journal = JAS,
+	year = "1948",
+	volume = "5",
+	number = "4",
+	doi = "10.1175/1520-0469(1948)005<0165:TDORWS>2.0.CO;2",
+	pages=      "165 - 166",
+}
+
 @Article{miao:thepo:03,
 	AUTHOR = {Miao, J. and Johnsen, K.-P. and Buehler, S. and Kokhanovsky, A.},
 	TITLE = {The potential of polarization measurements from space at mm and sub-mm wavelengths for determining cirrus cloud parameters},
@@ -204,6 +287,18 @@
 	PAGES = {39--48},
 	DOI = {10.5194/acp-3-39-2003}
 }
+
+@article{prigent2017sea,
+	title={Sea-surface emissivity parametrization from microwaves to millimetre waves},
+	author={Prigent, C and Aires, F and Wang, D and Fox, S and Harlow, C},
+	journal=QJRMS,
+	volume={143},
+	number={702},
+	pages={596--605},
+	year={2017},
+	publisher={Wiley Online Library}
+}
+
 
 @article{pfreundschuh:aneur:18,
   AUTHOR = {S. Pfreundschuh and P. Eriksson and D. Duncan and B. Rydberg and
@@ -282,11 +377,11 @@
 @article {Zhao:retri:02,
 	author = "Limin Zhao and Fuzhong Weng",
 	title = "Retrieval of Ice Cloud Parameters Using the Advanced Microwave Sounding Unit",
-	journal = JAM
+	journal = JAM,
 	year = "2002",
 	volume = "41",
 	number = "4",
 	doi = "10.1175/1520-0450(2002)041<0384:ROICPU>2.0.CO;2",
-	pages=      "384 - 395",
+	pages=      "384 -- 395",
 }
 

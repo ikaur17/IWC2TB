@@ -29,8 +29,7 @@
 
 \begin{document}
 
-\title{Physically-based all-sky retrievals of ice water path using the GPM 
-Microwave Imager}
+\title{Implications of ice hydrometeor orientation on IWP retrievals using GMI polarimetric measurements}
 
 
 % \Author[affil]{given_name}{surname}
@@ -118,7 +117,7 @@ In this study, we explore the benefits of incorporating polarimetric measurement
 
 We apply a Bayesian machine learning algorithm, Quantile Regression Neural Network (QRNN) \citep{pfreundschuh:aneur:18} to retrieve IWP from a database of atmospheric profiles generated using radiative transfer model. As a first step, a database representing the GMI measurements for a variety of atmospheric conditions is created. We avoid the ice-scattering calculations but the impact of polarisation is introduced using the scheme proposed by \citet{barlakas:intro:21}. They had introduced a simple scaling factor to mimic the effects of hydrometeor orientation. In this study, the simple scaling factor is extended to cover different magnitudes of polarimetric signatures observed by the Global Precipitation Measurement (GPM) Microwave Imager (GMI) 166 GHz channels. Further, the retrieval is applied to real GMI measurements and the results are compared against the existing IWP observation sets. We investigate the sensitivity of retrieved IWP to polarization differences and  quantify the errors arsing due to assumption of unpolarised signals. 
 
-\section{Data}
+\section{Satellite and model data}
 
 \subsection{GPM GMI}
 The GPM GMI instrument is a conical microwave radiometer, which provides a near global coverage of the precipitation estimates. It has a swath of 885\,\,km  and an earth incidence angle of 52.8$^{\circ}$. It instrument has thirteen microwave channels ranging from 10\,\,GHz to 183\,\,GHz which are sensitive to the different forms of precipitation. In this study, we use only the four high frequency measurements between 166 GHz and 183 GHz (Table~\ref{tab:gmi_channels}). These channels are sensitive to the precipitating ice and water vapour.
@@ -129,29 +128,67 @@ In this study, the retrieval is made from L1B radiances. The details of L1B algo
 \subsubsection{L3 IWP product}
 For comparison, we also utilize GMI IWP product.  
 
-\subsection{Cloudsat}
+
+%\subsection{Cloudsat}
+%CloudSat is a sun-synchronous satellite which is part of the A-train constellation and has been providing information on the vertical structure of clouds and aerosols, since 2006. It carries a 96\,\,GHz Cloud Profiling Radar (CPR) to measure the backscattering by clouds. It has a vertical resolution of 485\,\,km, and 1.8\,\,km along-track and 1.2\,\,km cross-track resolution. 
+
+%\subsection{ERA5}
+
+%ERA5 is global reanalysis data provided by European Centre for Medium-Range Weather Forecasts (ECMWF). The reanalysis combines model data with observations to provide hourly estimates of a large number of atmospheric, ocean and land-surface variables . In this study, we use multiple ERA5 atmospheric and surface parameters for generation of atmospheric scenes to be used as inputs to radiative transfer simulations described in sect.~\ref{sec:atm_scenes}. The parameters used here are temperature, cloud liquid water content, specific humidity, 2\,\,m temperature, 10\,\,m U wind, 10\,\,V wind, land sea mask, snow depth, sea ice cover, surface elevation. 
 
 
-\section{Radiative transfer simulations}
+\subsection{Atmospheric scenarios}
+\label{sec:atm_scenes}
 
-\subsection{ARTS}
-\label{sec:arts}
+A bulk database of two-dimensional atmospheric scenes is created based on Cloudsat radar reflectivities \citep{marchand:hydro:08} and ERA5 atmospheric and surface parameters \citep{era5:18}. The radar reflectivities are inverted to obtain vertical profiles of ice hydrometeors and rain, by assuming a particle model(described in sect.~\ref{sec:arts_setup}), while the ERA5 data (e.g. temperature, cloud liquid water content, 10\,\,m wind, specific humidity, 2\,\,m temperature, ...) provide the background data.
 
-\subsection{Polarisation correction}
+ERA5 data are collocated in space and time with the ascending and descending orbits of Cloudsat. The latitudinal grid is derived from Cloudsat orbit, while a custom vertical grid from -700\,\,m to 20000\,\,m is defined. The vertical grid spacing is 125\,\,m upto 8\,\,km and 250\,\, beyond 8\,\,km. Land and water are classified using ERA5 land sea mask. Furthermore, the locations with snow depth larger than 0.002\,\,m are classified as snow, while seaice locations are randomly selected from the regions with non-zero sea ice cover. The randomness helps to avoid too coherent sea-ice regions among different synthetic scenes.
+All values liquid water content below $10^{-8}$ or at temperature lower than 248\,\,K are also set to zero. Oxygen and Nitrogen levels are assumed to be varying with the amount of water vapour in the air. 
+
+In 2011, CPR suffered from a battery anomaly and has operated in daylight-only mode since then. In order to avoid any bias due to limited temporal coverage, we select random CloudSat profiles from 2009. The data is constrained between $65^{\circ}$S and $65^{\circ}$N to match the GMI latitudinal coverage. 
+
+
+\section{Tools and Methodology}
+
+\subsection{Radiative Transfer Simulations}
+\label{sec:rt_simulations}
+
+\subsubsection{ARTS setup}
+\label{sec:arts_setup}
+All forward simulations are performed with Atmospheric Radiative Transfer System \citep{eriksson:arts2:11}. The two-dimensional atmosphere is approximated using an independent beam approximation as utilized in works by \citet{ekelund2020using, eriksson:towar:20}. 
+The radar reflectivities are converted to bulk properties: IWC and rain water content (RWC), using a dbZ-based model system as described by \citet{ekelund2020using}. The microphysical assumptions are described below in Sect.~\ref{sec:hydrometeor_prop}. The temperature field is used to make the differentiation between liquid and ice hydrometeors. All hydrometeors below 0$^{\circ}$ are classified as ice and vice-versa. The radar measurements are inverted using an onion peeling concept. The method  divides the atmosphere into layers and for each layer the measurements are inverted using an IWC-dbZ table. The attenuation effects from hydrometeors and absorbing specied are also considered. To avoid spurious water contents due to surface clutter, a clutter zone at 1.2\,\,km land and 0.6\,\,km over water is defined. All retrievals below this zone are rejected and instead the value just above the clutter zone is used as a fill value. Additionally, all retrievals above .... are assumed to be erroneous and rejected.   
+
+The land and water/ocean emissivities are taken from Tool to Estimate Land-Surface Emissivities at Microwave frequencies (TELSEM; \citep{aires2011tool} and  Tool to Estimate Sea-Surface Emissivity from Microwaves to sub-Millimeter waves (TESSEM;
+\citep{prigent2017sea}, respectively. The snow and seaice emissivities are calculated using an empirical emissivity model described in Sect.~\ref{sec:snow_emissivity}.
+
+All simulations are performed in ``all-sky'' mode with 53$^{\circ}$ incidence angle. Only high frequency GMI channels, ie. 166V, 166H, 183$\pm$3, 183$\pm$7 are simulated. The GMI antenna pattern is assumed to be a Gaussian footprint with full width at half maximum of 7\,\,km. Multiple pencil beam simulations are averaged over this pattern to yield the antenna brightness temperatures.   
+
+\subsubsection{Hydrometeor properties}
+\label{sec:hydrometeor_prop}
+
+Three types of hydrometeors are considered for the radiative transfer calculation: cloud ice, rain and liquid clouds. For inversion of Cloudsat reflectivities to IWC, two different ice habits are applied: large plate aggregate and evans snow aggregate. Both particle habits are applied separately to generate two databases.
+The single scattering data are taken from ARTS single scattering database provided by \citet{eriksson:agene:18} and the particle size distribution (PSD) developed by \citet{field:snows:07} is used. F07 has two different distributions for tropics and midlatitudes, but here we have used the tropical setting, further denoted as F07T. 
+
+%Since the accuracy of the Cloudsat inversions are largely dependent on the assumed microphysical properties, a comparison of the databases generated with the two ice habits is made.
+
+Rain is assumed as a liquid sphere and the PSD is calculated using Marshall Palmer size distribution \citep{marshall:thedi:48}. The liquid clouds is assumed to be totally absorbing and their scattering effects neglected. For liquid clouds the absorption model by \citet{ellison2007permittivity} is followed.  
+
+
+\subsubsection{Polarisation correction}
 \label{sec:scaling_factor}
-The simulations cover four GMI channels: 166V, 166H, 183$\pm$3
-and 183$\pm$7\,GHz. The dbZ based
-system described in \citet{ekelund:using:20} is followed. The
-main inputs are radar reflectivities from CloudSat and ERA5 reanalysis data.
-Hydrometeor particles are assumed to be ARO (Sect.~\ref{sec:arts}), where the
-approximation from \citet{barlakas:intro:21} is extended to operate with 
-a random scaling factor (instead of a fixed one), as well as being applied also
-on the CloudSat radar data.
 
-\subsection{Snow emissivity model}
-%label{sec:snow_emissivity}
-The emissivities over land and water are taken from climatologies. However, for
-snow and sea ice surface types (identified using ERA5 data) an empirical snow
+In this study, both polarised and randomly oriented hydrometeors are simulated.  Including oriented particles inside radiative transfer is computationally expensive, however  \citet{barlakas:intro:21} have shown that the observed polarisation effects introduced by the oriented particles can be mimicked by a simple scaling factor. The layer optical thickness in H- and V- polarised channel is increased and decreased respectively by a correction factor $\alpha$, and the ratio of the corrected optical thickness between H- and V- channels is polarisation ratio ($\rho$) :
+\begin{eqnarray}
+\rho = \frac{1+\alpha}{1-\alpha}
+\end{eqnarray}
+
+Here, a similar approach is followed with slight modifications. Firstly, we scale the hydrometeor optical properties for H- and V- polarisations. And secondly, instead of applying one scaling factor to the entire data, we make a random selection for $rho\in[1, 1.4]$. A slightly smaller scaling is also applied to radar back-scattering. 
+
+
+\subsubsection{Snow emissivity model}
+\label{sec:snow_emissivity}
+
+The emissivities over land and water are taken from climatologies, as mentioned above. However, for snow and sea ice surface types an empirical snow
 and ice emissivity model was developed, based on the studies of
 \citet{harlow:2009:milli, harlow:2012:tundr} and \citet{hewison:2002:airbo}. If
 $\epsilon_{193}, \epsilon_{159}$ represents the emissivities for 193\,GHz and
@@ -171,9 +208,16 @@ d_{193}& = d_{159} - U(a_2, b_2) ;\, a_2 = 0.015, b_2 = 0.025 \,
 \end{align}
 where, $U(a, b)$ represents a uniform distribution between a and b. 
 
-\subsection{Particle shape and orientation}
 
 \subsection{Retrieval Algorithm}
+\label{sec:retrieval_algo}
+
+
+
+
+
+
+\subsection{Evaluation}
 
 \section{Results}
 \subsection{Simulations}
