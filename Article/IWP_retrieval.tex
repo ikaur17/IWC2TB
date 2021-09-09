@@ -11,18 +11,18 @@
 %% 2-column papers and preprints
 \documentclass[amt, manuscript]{copernicus}
 
-
+\newcommand{\todo}[1]{{\color{red} #1}}
 
 %% \usepackage commands included in the copernicus.cls:
 %\usepackage[german, english]{babel}
-%\usepackage{tabularx}
+\usepackage{tabularx}
 %\usepackage{cancel}
 %\usepackage{multirow}
 %\usepackage{supertabular}
 %\usepackage{algorithmic}
 %\usepackage{algorithm}
-%\usepackage{amsthm}
-%\usepackage{float}
+\usepackage{amsthm}
+\usepackage{float}
 %\usepackage{subfig}
 %\usepackage{rotating}
 
@@ -103,19 +103,25 @@ cloud parametrisations in new manners
 
 \introduction  %% \introduction
 
-Ice Clouds have a profound impact the Earth's radiation balance. They reflect the short and long wave radiation and emit long wave radiation contributing to the Earth’s energy balance and hydrological cycle \citep{liou:influ:86}. The total radiative forcing is dependent both on the microphysical and macrophysical properties, such as, the spatial distribution of ice particles, particle orientation, ice water content, etc. However, due to the complex vertical and spatio-temporal heterogeneity associated with ice clouds, the knowledge on the global distribution of atmospheric ice is deficient and not well captured by the models \citep{wilson:theim:00}. Significant uncertainties, in both meteorological and climate models, are inflicted by the simplifications introduced to resolve the complex structures \citep{reinhardt:impac:04}.
+Ice clouds have a profound impact the Earth's radiation balance. They reflect the short and long wave radiation and emit long wave radiation contributing to the Earth’s energy balance and hydrological cycle \citep{liou:influ:86}. The total radiative forcing is dependent both on the microphysical and macrophysical properties, such as, the spatial distribution of ice particles, particle orientation, ice water content, etc. However, due to the complex vertical and spatio-temporal heterogeneity associated with ice clouds, the knowledge on the global distribution of atmospheric ice is deficient and not well captured by the models \citep{wilson:theim:00}. Significant uncertainties, in both meteorological and climate models, are inflicted by the simplifications introduced to resolve the complex structures \citep{reinhardt:impac:04}.
 
-Ice water content (IWC)  is a key variable used to measure the atmospheric ice. It is defined as the bulk mass of ice in the atmosphere and the column integrated bulk mass is the ice water path (IWP). The existing space based retrieval systems use observations from either active or passive microwave sensors or exploit the synergies between the two. The 94\,\,GHz radar onboard Cloudsat is the first active sensor to give information on the vertical structure of clouds on a global scale. The synergy of the radar and CALIPSO lidar is the most accurate observation system providing global distribution of atmospheric ice, especially for the tropical ice clouds \citep{protat:theev:10}. This combination can sense ice hydrometeors ranging from thin cirrus to precipitating ice \citep{stephens:cloud:18}. However, the limited spatio-temporal sampling cannot fully resolve the  variability of atmospheric ice on both local and global scales.
 
-Despite the lack of scanning capability and single-frequency sensor, the researchers have benefited from tremendously from Cloudsat. Multiple IWP and IWC retreival algorithms based on passive sensors but constrained by Cloudsat observations have evolved. For example, \citet{gong:cloud:14} describe an empirical model to retreive IWP from Microwave Humidty Sounder (MHS) high frequency channels. The Synergistic Passive Atmospheric Retrieval Experiment-ICE (Spare-Ice) product \citet{holl:spare:14} is another empirical attempt which combines optical,microwave and infrared sensors to retrieve IWP. The usage infrared sensors can account for smaller ice particles in the cloud, they cannot sense the entire water column. 
+Ice water content (IWC)  is a key variable used to measure the atmospheric ice. It is defined as the bulk mass of ice in the atmosphere and the column integrated bulk mass is the ice water path (IWP). The existing space based retrieval systems measuring IWC/IWP, use observations from either active or passive microwave sensors or exploit the synergies between the two. The synergy between the 94\,\,GHz radar onboard Cloudsat and CALIPSO lidar provides the most accurate global distribution of atmospheric ice, especially for the tropical ice clouds \citep{protat:theev:10}. This combination can sense ice hydrometeors ranging from thin cirrus to precipitating ice \citep{stephens:cloud:18}. However, the limited spatio-temporal sampling cannot fully resolve the  variability of atmospheric ice on both local and global scales. 
 
-The global atmopsheric ice estimates from passive microwave sensors have proven to be successful capturing the diurnal cycle and interseasonal fluctuations. However, the inconsistency among different cloud ice observations leads to model uncertainties. A detailed comparison of different space borne IWP measurements by \citet{duncan:anupd:18, eliasson:asses:11} highlights that large discrepancies exist between different IWP estimates as the space-borne remote sensing techniques still cannot fully resolve the atmospheric ice properties. The limitations associated with sensor sensitivities and the oversimplified microphysical assumptions are mostly to blame. The sensor limitations will be overcome to a certain extent with the launch of new sensors like Ice Cloud Imager (ICI). ICI will will sense ice-clouds using sub-millimter(sub-mm) wavelengths and shall shall bridge the sensitivity gap between microwave and infrared sensors. However, the improvements in microphysical assumptions has seen slow progress. The physically based retrieval techniques associate the simulated brightness temperatures to the ice cloud structures, but most radiative transfer based retrieval algorithms, focusing on ice clouds, assume spherical or randomly oriented hydrometeors, e.g. \citep{evans:icecl:05, Zhao:retri:02}. The simplifications are often introduced to reduce computational loads, but at the same time, properties of ice-hydrometeors are still not fully understood. The ice hydrometeors exhibit dichroism effects resulting in polarization difference (PD) between the radiances measured by horizontal(H) and vertical(V) polarizations. The PD exhibited by oriented particles is generally higher than the randomly oriented ones. Constraining the microphysical assumptions to one or few habits and neglecting  orientation effects contributes to a non-zero bias in the retrievals. High inaccuracies also are connected to areas with large PD. For example, \citet{gong:micro:17} and \citep{miao:thepo:03} argue that retrieval of cloud ice has a strong connection to the polarimetric difference introduced by oriented particles, particularly for regions with convective outflow. 
+Among passive microwave measurements, the millimeter (mm) wavelengths have been proven to be suitable for measuring cloud parameters. With wider swath and ability to see through the cloud microwaves observations can capture the mesoscale systems. For example, \citet{gong:cloud:14} describe an empirical model to retrieve IWP from Microwave Humidty Sounder (MHS) high frequency channels. The Synergistic Passive Atmospheric Retrieval Experiment-ICE (Spare-Ice) product \citet{holl:spare:14} is another empirical attempt which combines optical,microwave and infrared sensors to retrieve IWP. The usage infrared sensors can account for smaller ice particles in the cloud but they cannot sense the entire water column. 
+
+The global atmopsheric ice estimates from passive microwave sensors have proven to be successful capturing the diurnal cycle and interseasonal fluctuations. However, there exists inconsistency between different cloud ice observations, thus leading to model uncertainties. A detailed comparison of different space borne IWP measurements by \citet{duncan:anupd:18, eliasson:asses:11} highlights that large discrepancies exist between different IWP estimates as the space-borne remote sensing techniques still cannot fully resolve the atmospheric ice properties. The limitations associated with sensor sensitivities and the oversimplified microphysical assumptions are mostly to blame. The sensor limitations will be overcome to a certain extent with the launch of new sensors like Ice Cloud Imager (ICI) measuring and sub-millimeter (sub-mm) wavelengths. ICI shall bridge the sensitivity gap between microwave and infrared sensors. Studies ....
+
+
+However another aspect, though recognised in literature, but mostly neglected in IWP retrieval algorithms is the benefits of using dual-polarisation measurements. Most IWP retrieval studies are either based on instruments lacking dual-polarisation, or include only one of the dual polarisation channels. Thus focussing only on the radiometric intensity of the signals. The ice hydrometeors exhibit dichroism effects resulting in polarization difference (PD) between the radiances measured by horizontal(H) and vertical(V) polarizations. The PD exhibited by oriented particles is generally higher than the randomly oriented ones. Constraining the microphysical assumptions to one or few habits and neglecting  orientation effects contributes to a non-zero bias in the retrievals. High inaccuracies also are connected to areas with large PD. For example, \citet{gong:micro:17} and \citep{miao:thepo:03} argue that retrieval of cloud ice has a strong connection to the polarimetric difference introduced by oriented particles, particularly for regions with convective outflow. 
+
+The physically based retrieval techniques associate the simulated brightness temperatures to the ice cloud structures, but most radiative transfer based retrieval algorithms, focusing on ice clouds, assume spherical or randomly oriented hydrometeors, e.g. \citep{evans:icecl:05, Zhao:retri:02}. The simplifications are often introduced to reduce computational loads, but at the same time, properties of ice-hydrometeors are still not fully understood. 
 
 Zeroing on an ice model incorporating accurate ice model remains a challenge, however, microwave sensors measuring different polarizations can help in inferring the properties of ice hydrometeors. The space borne sensors can provide accurate measures of the polarimetric differences and their potential in retrieval of ice cloud properties have have been long recognised. For example, \citep{coy:sensi:20}, have shown  that incorporating polarimetric measurements improve the retrievals of ice cloud microphysics such as particle effective diameter (D$_{eff}$), while \citep{hioki:degre:16} analyse the ice particle surface roughness from polarimetric observations. However, there is a general lack of  IWC and IWP retrieval methods taking PD into account.
 
 In this study, we explore the benefits of incorporating polarimetric measurements for retrievals of IWP using Global Precipitation Measurement (GPM) Microwave Imager (GMI). We aim for physical based measurements of IWP from passive microwave instruments, which can be bias-free and better performing than existing reanalyses and satellite based products. Currently, GMI is the only sensor which senses in dual polarisation mode above 100\,\,GHz. The Bayesian retrieval algorithm utilized by GPM for precipiation is also used for compute IWP from precipitating hydrometeors. The ice hydrometeors are not covered as the apriori database is generated for hydrometeor profiles covered by GPM Dual Precipitraion radar (DPR), which is sensitive only to precipitating hydrometeors. 
 
-We apply a Bayesian machine learning algorithm, Quantile Regression Neural Network (QRNN) \citep{pfreundschuh:aneur:18} to retrieve IWP from a database of atmospheric profiles generated using radiative transfer model. As a first step, a database representing the GMI measurements for a variety of atmospheric conditions is created. We avoid the ice-scattering calculations but the impact of polarisation is introduced using the scheme proposed by \citet{barlakas:intro:21}. They had introduced a simple scaling factor to mimic the effects of hydrometeor orientation. In this study, the simple scaling factor is extended to cover different magnitudes of polarimetric signatures observed by the Global Precipitation Measurement (GPM) Microwave Imager (GMI) 166 GHz channels. Further, the retrieval is applied to real GMI measurements and the results are compared against the existing IWP observation sets. We investigate the sensitivity of retrieved IWP to polarization differences and  quantify the errors arsing due to assumption of unpolarised signals. 
+We apply a Bayesian machine learning algorithm, Quantile Regression Neural Network (QRNN) \citep{pfreundschuh:aneur:18} to retrieve IWP from a database of atmospheric profiles generated using radiative transfer model. As a first step, a database representing the GMI measurements for a variety of atmospheric conditions is created. We avoid the ice-scattering calculations but the impact of polarisation is introduced using the scheme proposed by \citet{barlakas:intro:21}. They had introduced a simple scaling factor to mimic the effects of hydrometeor orientation. In this study, the simple scaling factor is extended to cover different magnitudes of polarimetric signatures observed by the Global Precipitation Measurement (GPM) Microwave Imager (GMI) 166 GHz channels. Further, the retrieval is applied to real GMI measurements. We investigate the sensitivity of retrieved IWP to polarization differences and  quantify the errors arsing due to assumption of unpolarised signals. 
 
 \section{Satellite and model data}
 
@@ -143,7 +149,7 @@ For comparison, we also utilize GMI IWP product.
 A bulk database of two-dimensional atmospheric scenes is created based on Cloudsat radar reflectivities \citep{marchand:hydro:08} and ERA5 atmospheric and surface parameters \citep{era5:18}. The radar reflectivities are inverted to obtain vertical profiles of ice hydrometeors and rain, by assuming a particle model(described in sect.~\ref{sec:arts_setup}), while the ERA5 data (e.g. temperature, cloud liquid water content, 10\,\,m wind, specific humidity, 2\,\,m temperature, ...) provide the background data.
 
 ERA5 data are collocated in space and time with the ascending and descending orbits of Cloudsat. The latitudinal grid is derived from Cloudsat orbit, while a custom vertical grid from -700\,\,m to 20000\,\,m is defined. The vertical grid spacing is 125\,\,m upto 8\,\,km and 250\,\, beyond 8\,\,km. Land and water are classified using ERA5 land sea mask. Furthermore, the locations with snow depth larger than 0.002\,\,m are classified as snow, while seaice locations are randomly selected from the regions with non-zero sea ice cover. The randomness helps to avoid too coherent sea-ice regions among different synthetic scenes.
-All values liquid water content below $10^{-8}$ or at temperature lower than 248\,\,K are also set to zero. Oxygen and Nitrogen levels are assumed to be varying with the amount of water vapour in the air. 
+All values liquid water content below $10^{-8}$ or at temperature lower than 248\,\,K are also set to zero. Variation in Oxygen and Nitrogen with the amount of water vapour in the air is also considered.  
 
 In 2011, CPR suffered from a battery anomaly and has operated in daylight-only mode since then. In order to avoid any bias due to limited temporal coverage, we select random CloudSat profiles from 2009. The data is constrained between $65^{\circ}$S and $65^{\circ}$N to match the GMI latitudinal coverage. 
 
@@ -156,7 +162,7 @@ In 2011, CPR suffered from a battery anomaly and has operated in daylight-only m
 \subsubsection{ARTS setup}
 \label{sec:arts_setup}
 All forward simulations are performed with Atmospheric Radiative Transfer System \citep{eriksson:arts2:11}. The two-dimensional atmosphere is approximated using an independent beam approximation as utilized in works by \citet{ekelund2020using, eriksson:towar:20}. 
-The radar reflectivities are converted to bulk properties: IWC and rain water content (RWC), using a dbZ-based model system as described by \citet{ekelund2020using}. The microphysical assumptions are described below in Sect.~\ref{sec:hydrometeor_prop}. The temperature field is used to make the differentiation between liquid and ice hydrometeors. All hydrometeors below 0$^{\circ}$ are classified as ice and vice-versa. The radar measurements are inverted using an onion peeling concept. The method  divides the atmosphere into layers and for each layer the measurements are inverted using an IWC-dbZ table. The attenuation effects from hydrometeors and absorbing specied are also considered. To avoid spurious water contents due to surface clutter, a clutter zone at 1.2\,\,km land and 0.6\,\,km over water is defined. All retrievals below this zone are rejected and instead the value just above the clutter zone is used as a fill value. Additionally, all retrievals above .... are assumed to be erroneous and rejected.   
+The radar reflectivities are converted to bulk properties: IWC and rain water content (RWC), using a dbZ-based model system as described by \citet{ekelund2020using}. The microphysical assumptions are described below in Sect.~\ref{sec:hydrometeor_prop}. The temperature field is used to make the differentiation between liquid and ice hydrometeors. All hydrometeors below 0$^{\circ}$ are classified as ice and vice-versa. The radar measurements are inverted using an onion peeling concept. The method  divides the atmosphere into layers and for each layer the measurements are inverted using an IWC-dbZ table. The attenuation effects from hydrometeors and absorbing specied are also considered. To avoid spurious water contents due to surface clutter, a clutter zone at 1.2\,\,km land and 0.6\,\,km over water is defined. All retrievals below this zone are rejected and instead the value just above the clutter zone is used as a fill value. Additionally, all retrievals above \todo{...} are assumed to be erroneous and rejected.   
 
 The land and water/ocean emissivities are taken from Tool to Estimate Land-Surface Emissivities at Microwave frequencies (TELSEM; \citep{aires2011tool} and  Tool to Estimate Sea-Surface Emissivity from Microwaves to sub-Millimeter waves (TESSEM;
 \citep{prigent2017sea}, respectively. The snow and seaice emissivities are calculated using an empirical emissivity model described in Sect.~\ref{sec:snow_emissivity}.
@@ -177,21 +183,31 @@ Rain is assumed as a liquid sphere and the PSD is calculated using Marshall Palm
 \subsubsection{Polarisation correction}
 \label{sec:scaling_factor}
 
-In this study, both polarised and randomly oriented hydrometeors are simulated.  Including oriented particles inside radiative transfer is computationally expensive, however  \citet{barlakas:intro:21} have shown that the observed polarisation effects introduced by the oriented particles can be mimicked by a simple scaling factor. The layer optical thickness in H- and V- polarised channel is increased and decreased respectively by a correction factor $\alpha$, and the ratio of the corrected optical thickness between H- and V- channels is polarisation ratio ($\rho$) :
+In this study, both azimuthally random orientation (ARO)  and total random orientation (TRO) hydrometeors are simulated. The existing scattering database of azimuthally randomly oriented (ARO) particles (Brath et al., 2020) is not comprehensive. It contains two habits, but as one habit is only valid for relatively small particles (the plate habit) and the second (the aggregate habit) does not cover small particles. In practice, these two habits have to combined to effectively simulate a single habit. Additionally, simulating ARO particles inside radiative transfer is computationally expensive.
+
+Nevertheless, there is an alternate way to approximate the hydrometeor orientation. In Barlakas et al. (2021) it is shown that the impact of particle orientation can be approximated by scattering data calculated for totally random orientation (TRO). The scheme was tested with RTTOV-SCATT and is available as an option in the latest RTTOV version. The polarisation effects observed by conically scanning instruments, introduced by oriented particles (Prigent et al, 2001; Gong and Wu, 2017), are mimicked by a simple scaling factor. For TRO particles, there is no difference in the extinction between the two polarisations. However, oriented hydrometeors introduce differences between the two, and the correction factor is a simple way to approximate this effect. To model the effect of ARO particles, a correction factor ($\alpha$) is used to increase and decrease the layer optical thickness ($\tau$) in the horizontal (H) and vertical (V) 
+polarised channels, respectively, and the ratio of the modified layer optical thickness gives the polarisation ratio:
+
 \begin{eqnarray}
-\rho = \frac{1+\alpha}{1-\alpha}
+\rho = \frac{\tau_H}{\tau_V} = \frac{1+\alpha}{1-\alpha}
 \end{eqnarray}
 
-Here, a similar approach is followed with slight modifications. Firstly, we scale the hydrometeor optical properties for H- and V- polarisations. And secondly, instead of applying one scaling factor to the entire data, we make a random selection for $rho\in[1, 1.4]$. A slightly smaller scaling is also applied to radar back-scattering. 
+The factor $\alpha$ $(>= 0)$  weakens the extinction at V-polarisation and strengthens it for H-polarisation. For TRO particles, $\alpha$ is equal to one, and for ARO, within the frameworks of RTTOV-SCATT, the best estimate is suggested as 1.4 ($\alpha$=1.67, for 166\,\,GHz, \citep{barlakas}).
+
+In this study, we extend this scheme within the ARTS setup for high-frequency channels of GMI, but with slight modifications. Instead of applying one scaling factor to the entire data, we scale the extinction for H- and V- polarisations by a variable polarization ratio. The selection is made by comparing the distributions of forward modelled and observed radiances. A detailed description is provided in Sect~\ref{sec:polratio}
+
+A slightly smaller scaling is also applied to radar back-scattering. \todo{to be written...} 
 
 
 \subsubsection{Snow emissivity model}
 \label{sec:snow_emissivity}
 
-The emissivities over land and water are taken from climatologies, as mentioned above. However, for snow and sea ice surface types an empirical snow
-and ice emissivity model was developed, based on the studies of
-\citet{harlow:2009:milli, harlow:2012:tundr} and \citet{hewison:2002:airbo}. If
-$\epsilon_{193}, \epsilon_{159}$ represents the emissivities for 193\,GHz and
+For water bodies the Tool to Estimate Sea-Surface Emissivity from Microwaves to sub-Millimeter waves (TESSEM, Prigent et al. (2017)) model is valid to sufficiently high frequencies, but for other surface types no ready models are at hand and estimates of land, ice and snow emissivity. The climatology based Tool to Estimate Land-Surface Emissivities at Microwave frequencies (TELSEM, Aires et al (2011)) has an updated version TELSEM2 (Wang et al., 2017), which provides an emissivity database for land, sea ice and snow surface types above 85 GHz. However, in the latter,  the snow and sea ice emissivity estimates are empirical approximations. For example, continental snow emissivity values are assumed to be constant for frequencies above 85 GHz. The sea ice emissivities are parameterized upto 183 GHz using Special Sensor Microwave - Imager/Sounder (SSMIS) derived emissivities (Boukabara et al., (2011)) but only for recent sea ice classes. Multi year ice emissivities are assumed constant for frequencies above 85 GHz. On the other hand, data from aircraft campaigns (e.g. Hewison et al. (2002) ) have shown that emissivity at 183 GHz is consistently higher than at 157 GHz for both snow and sea ice surface types. Similarly, Harlow and Essery (2012) have also shown that the snow emissivities increase monotonically with increasing frequency. 
+
+Based on the observations in these studies, we have developed an empirical snow emissivity model for frequencies between 150 GHz and 190 GHz. This model gives a random estimate of the snow emissivity from a standard normal distribution depicting the valid range of emissivity values. The model is calibrated against measurements from GMI by comparing the observed and forward modelled radiances. The basic idea is to find a set of emissivity estimates that simultaneously give radiance closest to the measurements.
+This empirical model was fine-tuned by comparing the observed and forward modelled radiances, and the final version used in this study is described below. 
+
+If $\epsilon_{193}, \epsilon_{159}$ represents the emissivities for 193\,GHz and
 159\,GHz respectively, then
 \begin{align}
 \epsilon_{193}& = \min({N(\mu_{193}, \sigma_{193}^{2}), 1});\, \mu_{193} = 0.78, \sigma_{193} = 0.07 \label{eq:1}\\
@@ -208,21 +224,122 @@ d_{193}& = d_{159} - U(a_2, b_2) ;\, a_2 = 0.015, b_2 = 0.025 \,
 \end{align}
 where, $U(a, b)$ represents a uniform distribution between a and b. 
 
+In this study, snow over both land and sea-ice were treated identically. 
+
+\subsection{Generation of databases}
+\label{sec:database}
+
+Using the ARTS setup described above, four type of databases are considered. These databases are identical in all aspects but particle habit and particle orientation. The details of these databases are described in Table~\ref{tab:database_configuration}. For each particle habit, two databases are generated. One including the hydrometeor orientation and the other without. For both databases, the polarisation ratio applied to radar backscattering is kept identical. Table~\ref{tab:} describes the details of all four databases considered in this study.
+
+\begin{table}[t]
+	\caption{Specifications of the four databases considered.}
+	\label{tab:specs_database}	
+	\begin{tabular}{ccc}
+		\tophline
+		Name & Particle habit 	& Orientation  \\
+		\middlehline
+		LPA-ARO & Large plate aggregate & ARO\\
+		LPA-TRO & Large plate aggregate & TRO\\
+		ESA-ARO & Evans snow aggregate  & ARO\\
+	    ESA-TRO & Evans snow aggregate  & TRO\\
+		\bottomhline
+	\end{tabular}
+	\belowtable{} % Table Footnotes
+\end{table}
+
+Using the simulations setup described in previous sections, approximately 800\,000 pencil beam simulations were simulated for each of the four databases. These calculations are based on randomly selected CloudSat orbits during January 2009.For LPA-ARO, additional simulations for June 2009 were also simulated.
+
 
 \subsection{Retrieval Algorithm}
 \label{sec:retrieval_algo}
 
+The basic idea is to combine a database based on radiative transfer with machine learning (ML) to retrieve IWP and the associated uncertainties.  The ML algorithm uses the database to give the posterior knowledge of the quantity sought, given the scene of observations. Basing the inversions on a retrieval database, which is used to train the ML model, can avoid the limitations in traditional approaches.
 
 
+
+\subsubsection{QRNN}
+\label{sec:QRNN}
+
+QRNN is a neural network which learns to predict the outputs {$y_i$} from inputs {$x_i$} through a series of learnable transformations. It is trained to minimise the mean of the quantile loss function and predicts the quantiles of the distribution. 
+
+ While training, neural networks seek to minimise the model error through a loss function. The choice of the loss function depends on the predictive problem. When  it is called a Quantile Regression Neural Network (QRNN). 
+
+If $x_{\tau}$ is the $\tau$th quantile of a cumulative distribution function $F(X)$, the quantile loss function is defined as:
+
+
+
+
+ input data to the simulations must only match reality in an overall statistical sense. For example, it is not totally necessary to know the emissivity of (surface) snow at a given time and position. We can apply a random snow emissivity, as long as the applied distribution of emissivities follows reality
 
 
 
 \subsection{Evaluation}
 
+
+
 \section{Results}
-\subsection{Simulations}
+
+\subsection{Polarisation ratio}
+\label{sec:polratio}
+\begin{figure*}[t]
+	\includegraphics[width=8.3cm]{Figures/PD_166.png}
+	\caption{The polarisation differences (166V - 166H) as a function of
+		brightness temperatures at 166V GHz ( PD-TB$_V$ relationship) for observations (black) and simulated (red) for dfferent values of $\rho$. The scatter plot from the observations is also plotted in light blue.}
+	\label{fig:PD_166}
+\end{figure*}
+\begin{figure}[t]
+	\includegraphics[width=8.3cm]{Figures/divergence.pdf}
+	\caption{The J-S divergence describing the differences between the two-dimensional PD-TB$_V$ relationship between observations and simulations along (a) TB axis and (b) PD axis. Results from the four experiments with different values of $\rho$ are shown. }
+	\label{fig:divergence_PD}
+\end{figure}
+
+The scattering from oriented particles introduces polarisation differences (PD) between V- and H- polarised channels. The PD have a very unique relationship with TB. Figure~\ref{fig:PD_166} shows the PD-TB$_V$ relationship observed at 166\,\,GHz. Polarisation signals introduced by both surface contribution and hydrometeor scattering are are included in this figure. The contribution from oriented ice particles is mostly concentrated below 250\,\,K and they follow a bell shape curve. On the other hand, the large PDs concentrated along the arm are introduced by scattering from the surface, especially over water.  The magnitude of maximum PD can vary with frequency or on the surface type it was measured, but \citet{gong} have shown that this bell shape pattern appears universally at all high microwave frequencies.
+
+In this study, we utilize the PD-TB$_V$ relationship at 166\,\,GHz to select the value of $\rho$ providing the best fit between simulations and observations. The simulations do not have a one-to-one correspondence with the observations, but are expected to have a similar statistical distribution. In order to quantify the measure of similarity between the observed and simulated PD-TB$_V$ distributions, we employ the Jensen–Shannon divergence method \citep{}. This method calculates the divergence between the true and the approximated distribution. It is a symmetric and smooth implementation of the Kullback–Leibler divergence \citep{}. If $P^o$ and $P$ are two probability distributions and $KL (P^o \parallel P)$ denotes the Kullback–Leibler divergence between the two, then J-S divergence is defined as:
+
+\begin{equation}
+JSD(P^o \parallel P) = 0.5 \times (D(P^o \parallel R)+D(P \parallel R))
+\end{equation}
+
+where, $R = 0.5 \times (P^o + P)$ is the mid-point of the probability vectors $P^o$ and $P$. $JSD$ can take values between $[0, \inf]$, where small values indicate low divergence. $JSD$ is equal to zero only if $P^o$ and $P$ are identical distributions. For two-dimensional distributions, the divergence can be calculated along both dimensions.   
+
+To model the effects of $\rho$ four experiments with identical set-up but different values of $\rho$ are conducted. In first three experiments, forward modelled radiances from January 2009 are estimated for $\rho = 1, 1.2, 1.4$. In the fourth experiment, a uniform distribution for $\rho\in[1, 1.4]$ is assumed. The input atmospheric scenarios are identical in each experiment. 
+
+Figure~\ref{fig:PD_166} shows the PD-TB$_V$ relationship for different values of $\rho$. When all hydrometeors are assumed to be TRO ($\rho = 1$), simulations are unable to capture the PDs observed for colder radiances. Below 200\,\,K the simulated PDs start to flatten out. Nonetheless, the surface contributions match quite well. In the second experiment, when all cases are scaled by $\rho = 1.2$, the very low PDs (below 2\,K) from hydrometeor scattering are absent and the PDs > 5\,K are over-represented. Similar is the case in the third experiment with $\rho = 1.4$. In this case the over-representation is further increased. In all three experiments, the surface impact remains unchanged, and matches well with observed distribution. Figure~\ref{fig:divergence_PD} displays the J-S divergences along both dimensions (TB and PD) for all four experiments. For the first three experiments, the match between the distributions is quite high for towards the warmer radiances, i.e. surface impact. This is in line with the results seen in the two-dimensional histograms. Towards the colder radiances (< 175\,\,K), the divergence is lowest for $\rho = 1.2$, and maximum for $\rho = 1$. But between 175\,\,K and 250\,\,K, $\rho = 1.2$ has the highest mismatch. Increasing the polarisation ratio helps in reducing the differences for the colder radiances but at the cost of over-representation. Similar behaviour is also observed for $\rho = 1.4$.
+THe fourth experiment however behaves differently. With a variable $\rho$ the simulated PDs both induced by clouds and as well as the surface contribution well approximated. The divergence for this set-up is lowest among all four experiments, particularly for the range 150 - 250\,\,K where most cloud induced PD are observed. 
+
+The results from these four experiments show that a single value of $\rho$ is not sufficient to mimic a realistic PD distribution. While inclusion of ARO particles is important, effect from TRO cannot be completely ignored. In reality, the polarisation patterns depend on the microphysical properties, and the complex mixture of hydrometeors in the atmosphere can generate a plethora of polarisation signals. This wide spectrum of polarisation signals cannot be reproduced correctly by constraining the particle model to only one habit and size distribution, and one polarisation ratio. In this study, since we accomodate only one particle model, choosing a constant $\rho$ constrains the PDs to a narrow range. A random selection of $\rho$ can alleviate this limitation to a certain extent. Based on the results from the four experiments described above, we select $\rho$ from a uniform distribution between [1, 1.4].
+
+\subsection{Comparison of simulations and measurements}
+
+\subsubsection{TB distribution}
+
+\begin{figure}[t]
+	\includegraphics[width=8.3cm]{Figures/PDF_TB_jan.pdf}
+	\caption{Distribution of TBs for all high frequency channels of GMI . The black curve represents the GMI measurements, while the four curves denote the four simulation databases.}
+	\label{fig:hist_TB}
+\end{figure}
+
+This section describes the performance of simulated TBs for all four hifg frequency channels of GMI. Figure~\ref{fig:hist_TB} shows the distribution of TBs for each channel. The distribution of GMI observations is also plotted in black. Results from all four databases (see sect.~\ref{sec:database}) are shown. These distributions only provide a statistical overview of the TB distributions. 
+
+For all four channels, the peak of the distributions correspond to the clear-sky scenarios, while the coldest TBs are associated with deep convective systems. For clear-sky cases, all four databases agree well with GMI but over the colder part of the TBs, none of the four databases are able to reproduce the exact distribution. With large plate aggregate, the forward simulations put more cases with low TBs, while with evans snow aggregate the model falls short of simulating the coldest TBs. Over the intermediate region (around 200\,\,K at 166 GHz) the simulations have a high occurrence rate, and this mismatch is also evident at 183$\pm7$\,\,GHz but with a smaller magnitude.
+
+
+\subsubsection{Polarisation differences}
+
+%f
+\begin{figure}[t]
+\includegraphics[width=8.3cm]{Figures/hist_surfacetype_tro_aro.pdf}
+\caption{Stacked barplots showing the distribution of TB difference between ARO and TRO based simulations for large plate aggregate. The barplots are color coded by surface type.}
+\label{fig:hist_surfacetype}
+\end{figure}
+
+
+
 
 \subsection{Retrieval results: Test data}
+%
+
 
 \subsection{Retrieval results: GMI observations}
 
@@ -292,15 +409,6 @@ TEXT
 \bibliographystyle{copernicus}
 \bibliography{references.bib}
 
-\begin{thebibliography}{}
-
-\bibitem[AUTHOR(YEAR)]{LABEL1}
-REFERENCE 1
-
-\bibitem[AUTHOR(YEAR)]{LABEL2}
-REFERENCE 2
-
-\end{thebibliography}
 
 %% Since the Copernicus LaTeX package includes the BibTeX style file copernicus.bst,
 %% authors experienced with BibTeX only have to include the following two lines:
