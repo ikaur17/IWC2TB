@@ -14,14 +14,15 @@ import pickle
 
 
 #----------------------------------------------
-outfile = "dardar_jul2009"
+outfile = "dardar_jan2009"
 year = "2009"
-month = "06"
+month = "01"
 #----------------------------------------------
 
 dfiles = []
 #dpath  = "/home/inderpreet/Dendrite/SatData/DARDAR/2008/12/"
 #dfiles += glob.glob(os.path.join(dpath + "*/*.hdf"))  
+
 
 dpath  = os.path.join("/home/inderpreet/Dendrite/SatData/DARDAR/", year, month)
 dfiles += glob.glob(os.path.join(dpath , "*/*.hdf"))  
@@ -48,16 +49,17 @@ for dfile in dfiles[:]:
     dmask   = np.abs(dlat) <= 65.0
     
     
-    diwp    = np.zeros(dlat[dmask].shape[0])    
-    for i in range(diwc[dmask, :].shape[0]):
-        diwp[i] = np.trapz(diwc[i, :], dh)
+    diwp = np.sum(diwc[dmask], axis = 1) * 60
+    #diwp    = np.zeros(dlat[dmask].shape[0])    
+    #for i in range(diwc[dmask, :].shape[0]):
+    #    diwp[i] = np.trapz(diwc[i, :], dh)
     
 
     DIWP.append(diwp)
     DLAT.append(dlat[dmask])
     DLON.append(dlon[dmask])
 
-diwp = -1 * np.concatenate(DIWP)
+diwp = np.concatenate(DIWP)
 dlat = np.concatenate(DLAT)
 dlon = np.concatenate(DLON)
 
@@ -69,6 +71,8 @@ with open(outfile + ".pickle", "wb") as f:
     pickle.dump(diwp, f)
 f.close()
 
+
+#%%
 with open(outfile + ".pickle", "rb") as f:
     dlat = pickle.load(f)
     dlon = pickle.load(f)

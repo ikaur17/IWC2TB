@@ -37,7 +37,7 @@ from plot_hist2d import plot_hist2d
 from filter_gmi_sat import filter_gmi_sat
 from remove_oversampling_gmi import remove_oversampling_gmi
 from plot_hist import plot_hist
-plt.rcParams.update({'font.size': 32})
+plt.rcParams.update({'font.size': 20})
 
 #%%
 def call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
@@ -55,7 +55,84 @@ def call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi,
     
 
     plot_hist(ta1, tb0, figname)
+    
+#%%
+def call_hist2d_all(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims = None, stype_sim = None, stype_gmi = None, 
+                figname = None):
 
+        
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+
+    fig, ax = plt.subplots(2, 2, figsize = [16, 16])
+    ax = ax.ravel()
+    
+
+    #water  ------------------------------- 
+    stype_gmi = [1, 12]
+    stype_sim = 0
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+
+    plot_hist(ta1, tb0, figname, ax = ax[0]) 
+    
+    #land  ----------------------------------  
+    stype_gmi = [3, 4, 5, 6, 7]
+    stype_sim = [1, 4]
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+
+    plot_hist(ta1, tb0, figname, ax = ax[1]) 
+
+    #snow ------------------------------------  
+    stype_gmi = [8, 9, 10, 11]
+    stype_sim = [2, 5, 7, 9]
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+
+    plot_hist(ta1, tb0, figname, ax = ax[2]) 
+
+    #seaice   ---------------------------------
+    stype_gmi = [2,14]
+    stype_sim = [3,6]
+    tb0, lat0, lon0 = (filter_gmi_sat(lat_gmi[::6], lon_gmi[::6], 
+                                      tb_gmi[::6, :], lsm_gmi[::6],
+                                      latlims, stype_gmi))
+    ta1, lat1, lon1 = filter_gmi_sat(lat, lon, ta, stype, latlims, stype_sim)
+    
+
+    plot_hist(ta1, tb0, figname, ax = ax[3]) 
+    
+    
+    ax[2].set_xlabel(" Brightness temperature 166V GHz [K] ")
+    ax[2].set_ylabel("Polarisation difference [K]")
+    
+    ax[3].set_xlabel(" Brightness temperature 166V GHz [K] ")
+    ax[0].set_ylabel("Polarisation difference [K]")
+    
+    
+    titles = ["Water", "Land", "Snow", "Seaice"]
+    for i in range(4):
+        ax[i].grid("on", alpha = 0.3)
+        ax[i].set_title(titles[i])
+        ax[i].set_ylim([-7, 55])
+        ax[i].set_xlim([100, 310])
+        
+    fig.savefig("hist2d_all_surface_jan.pdf", bbox_inches = "tight")    
 #%%
 def compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims):
     
@@ -75,8 +152,8 @@ def compare_psd(ta, lat, lon, stype, ta1, lat1, lon1, stype1, latlims):
 def swap_gmi_183(ta1):
     
         temp = np.zeros(ta1.shape)
-        temp[:,  1] = ta1[:, 1]
         temp[:,  0] = ta1[:, 0]
+        temp[:,  1] = ta1[:, 1]
         temp[:,  2] = ta1[:, 3]
         temp[:,  3] = ta1[:, 2]
         ta1 = temp.copy()
@@ -95,14 +172,15 @@ if __name__ == "__main__":
     inpath_gmi   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2020/01/')
     # GMI simulations    
     inpath_mat   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.1/') 
-    # GMI frequencies
-    freq     = ["166.5V", "166.5H", "183+-3", "183+-7"]    
+    key = "lpa"
+    # GMI frquencies
+    freq     = ["166.5V", "166.5H",  "183+-7", "183+-3",]    
 
 #%% read GMI measurrments 
     gmifiles = glob.glob(os.path.join(inpath_gmi, "*/*.HDF5"))
     
     random.shuffle(gmifiles)
-    gmi_sat = GMI_Sat(gmifiles[:40])
+    gmi_sat = GMI_Sat(gmifiles[:25])
     
     lat_gmi = gmi_sat.lat
     lon_gmi = gmi_sat.lon
@@ -205,6 +283,24 @@ if __name__ == "__main__":
         pickle.dump(tbbins, f)
         f.close()
 
+#%%
+    cmask = gmi.iwp >= 1
+    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+
+    ax.scatter(ta[cmask, 0], ta[cmask, 0] - ta[cmask, 1])
+    
+#%% all surface types in one plot
+    
+
+    latlims  = [0, 65]
+    lsm = None   
+    call_hist2d_all(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, lsm, lsm, 
+                figname = "hist2d_gmi_all_" + key + ".pdf")
+    
+
+
+    
     
 #%% all surface types
     #Tropics    
@@ -213,7 +309,7 @@ if __name__ == "__main__":
     lsm = None    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, lsm, lsm, 
-                figname = "hist2d_gmi_tropics_all_lpa.pdf")
+                figname = "hist2d_gmi_tropics_all_" + key + ".pdf")
  
     # higher latitudes
     
@@ -221,7 +317,7 @@ if __name__ == "__main__":
     latlims  = [30, 65]
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, lsm, lsm,  
-                figname = "hist2d_gmi_30-45_all_lpa.pdf")
+                figname = "hist2d_gmi_30-45_all_" + key + ".pdf")
 
     
     print ("doing 45-60, all")
@@ -229,7 +325,7 @@ if __name__ == "__main__":
     latlims  = [45, 65]
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, lsm, lsm, 
-                figname = "hist2d_gmi_45-60_all_lpa.pdf")
+                figname = "hist2d_gmi_45-60_all_" + key + ".pdf")
 
 
 #%% tropics land    
@@ -263,7 +359,7 @@ if __name__ == "__main__":
     latlims  = [0, 30]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_tropics_land_lpa.pdf")        
+                figname = "hist2d_gmi_tropics_land_" + key + ".pdf")        
 
     # higher latitudes land
     
@@ -272,7 +368,7 @@ if __name__ == "__main__":
     latlims  = [30, 45]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_30-45_land_lpa.pdf")
+                figname = "hist2d_gmi_30-45_land_" + key + ".pdf")
     
     print ("doing high lats, land")
 
@@ -283,9 +379,18 @@ if __name__ == "__main__":
   
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_45-65_land_lpa.pdf")
+                figname = "hist2d_gmi_45-65_land_" + key + ".pdf")
 
-
+#%%    
+    latlims  = [0, 65]  
+    stype_gmi = [1, 3, 4, 5, 6, 7]
+    stype_sim = [1, 4]
+        
+  
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_all_land_" + key + ".pdf")
+    
 
     
 #%% higher latitudes sea
@@ -298,7 +403,7 @@ if __name__ == "__main__":
     latlims  = [30, 45]
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_30-45_sea_lpa.pdf")
+                figname = "hist2d_gmi_30-45_sea_" + key + ".pdf")
     
  
     print ("doing high lats, sea")
@@ -306,7 +411,7 @@ if __name__ == "__main__":
     latlims  = [45, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_45-65_sea_lpa.pdf")        
+                figname = "hist2d_gmi_45-65_sea_" + key + ".pdf")        
     
     # tropics sea
     
@@ -315,7 +420,16 @@ if __name__ == "__main__":
     latlims  = [0, 30]
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi,  
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_tropics_sea_lpa.pdf")  
+                figname = "hist2d_gmi_tropics_sea_" + key + ".pdf")  
+    
+    print ("All, sea")
+
+    latlims  = [0, 65]
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi,  
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_all_sea_" + key + ".pdf")  
+
+
     
     
 #%% higher latitudes sea-ice
@@ -328,7 +442,7 @@ if __name__ == "__main__":
     latlims  = [50, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_highlat_sea-ice_lpa.pdf") 
+                figname = "hist2d_gmi_highlat_sea-ice_" + key + ".pdf") 
     
 #%%
     print ("highlats, snow")
@@ -338,15 +452,25 @@ if __name__ == "__main__":
     latlims  = [30, 45]
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_30-45_snow_lpa.pdf")           
+                figname = "hist2d_gmi_30-45_snow_" + key + ".pdf")           
     
     print ("highlats, snow")
     latlims  = [45, 65]    
     call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
                 lsm_gmi, latlims, stype_sim, stype_gmi, 
-                figname = "hist2d_gmi_45-60_snow_lpa.pdf")  
+                figname = "hist2d_gmi_45-60_snow_" + key + ".pdf")  
 
 #%%
+    latlims  = [0, 65]  
+    stype_gmi = [2, 14,8, 9, 10, 11]
+    stype_sim = [3, 6,2, 5, 7, 9]
+        
+  
+    call_hist2d(ta, lat, lon, stype, tb_gmi, lat_gmi, lon_gmi, 
+                lsm_gmi, latlims, stype_sim, stype_gmi, 
+                figname = "hist2d_gmi_snowseaice_land_" + key + ".pdf")    
+
+#%%    
 
     plot_pdf_gmi(ta, tb_gmi, bins= None, figname = "distribution_gmi.pdf")
 
@@ -362,8 +486,8 @@ if __name__ == "__main__":
     bins = np.arange(-5, 50, 0.2)
     hist = np.histogram(ta1[:, 0] - ta1[:, 1], bins, density = True) 
     ax.step(hist[1][:-1], hist[0], 'r', label = "simulated")    
-    hist = np.histogram(tb_gmi[::6, 0] - tb_gmi[::6, 1], bins, density = True) 
-    ax.step(hist[1][:-1], hist[0], 'b', label = "observed")    
+    hist_gmi = np.histogram(tb_gmi[::6, 0] - tb_gmi[::6, 1], bins, density = True) 
+    ax.step(hist_gmi[1][:-1], hist_gmi[0], 'b', label = "observed")    
     ax.legend()   
     ax.set_yscale('log')
     ax.set_xlabel("Polarisation difference 166 GHz [V-H]")
@@ -371,6 +495,14 @@ if __name__ == "__main__":
     fig.savefig("Figures/PD_PDF.pdf", bbox_inches = "tight")
     
 
+
+#%%
+    with open("PD_" + key + ".pickle", 'wb') as f:
+        pickle.dump(hist_gmi[0],f)
+        pickle.dump(hist[0], f)
+        pickle.dump(bins, f)
+        f.close()
+        
 #%%  
     latlims = [30, 45]
     stype_sim = [3, 4, 5, 6, 7]

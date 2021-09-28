@@ -12,7 +12,7 @@ import glob
 from iwc2tb.GMI.GMI import GMI
 import zipfile
 import typhon.arts.xml as xml
-from era2dardar import zip2dardar
+from era2dardar.utils import zip2dardar
 from era2dardar.DARDAR import DARDARProduct
 from era2dardar.atmData import atmdata
 from era2dardar.utils.alt2pressure import alt2pres, pres2alt
@@ -27,7 +27,7 @@ def bin_iwp(lat, iwp, latbins = None):
 
     if latbins is None:
         
-        latbins  = np.arange(-65, 66, 2.5)
+        latbins  = np.arange(-65, 66, 2)
     
     bins     = np.digitize(lat, latbins)
     
@@ -36,6 +36,7 @@ def bin_iwp(lat, iwp, latbins = None):
     
     return iwp_mean, latbins
 
+#%%
 def interpolate_iwc(dardar, z_field, p_grid):
         """
         The IWC data from DARDAR interpolated to pressure grid defined in
@@ -72,8 +73,9 @@ def interpolate_iwc(dardar, z_field, p_grid):
 #%%    
 def dardar_iwp(zipfiles):
     
-    p_grid = alt2pres(np.arange(-700, 20000, 250))
-    p_grid = (np.concatenate([p_grid, 
+    p_grid_fine = alt2pres(np.arange(-700, 8000, 125))
+    p_grid_coarse = alt2pres(np.arange(8000, 20000, 250))
+    p_grid = (np.concatenate([p_grid_fine, p_grid_coarse,
                              np.array([30, 20, 10, 7, 5, 3, 2, 1]) * 100]))
     
     iwp_total = []
@@ -84,12 +86,23 @@ def dardar_iwp(zipfiles):
         print (zfile)
         dardarfile, N = zip2dardar.zip2dardar(zfile)
         z_field = read_from_zip(zfile, "z_field")
+        
         dardar = DARDARProduct(dardarfile, latlims = [-65, 65], node = N)
         
         iwc = interpolate_iwc(dardar, z_field, p_grid)
         
+#------------------------------------------------
+        z0 = z_field[0, :] + 1200
+       
+        for i in range(z_field.shape[1]):
+            mask = z_field[:, i] < z0[i] 
+            iwc[mask, i] = 0
+
+#------------------------------------------------        
+        
         lat = dardar.latitude
         lon = dardar.longitude
+
 
         
         z   = pres2alt(p_grid)
@@ -131,14 +144,16 @@ if __name__ == "__main__":
     # GMI simulations    
     #inpath   =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/test/test1.3')  
     #inpath1  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_testsimulations/test_f07')
-    inpath2  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.0')
+    inpath2  =  os.path.expanduser('~/Dendrite/Projects/IWP/GMI/GMI_m65_p65_v1.1')
 
     
     
     #matfiles = glob.glob(os.path.join(inpath, "2010_*.mat"))
     #matfiles1 = glob.glob(os.path.join(inpath1, "2010_0*.mat")) 
-    matfiles2 = glob.glob(os.path.join(inpath2, "2010_0*.mat")) 
-
+    matfiles = glob.glob(os.path.join(inpath2, "2009_00*.mat")) 
+    matfiles1 = glob.glob(os.path.join(inpath2, "2009_01*.mat")) 
+    matfiles2 = glob.glob(os.path.join(inpath2, "2009_02*.mat")) 
+    matfiles  = matfiles + matfiles1 + matfiles2
 # #%% find files with high IWC
     
 #     #Himalayas
@@ -175,9 +190,10 @@ if __name__ == "__main__":
 #             #    plot_locations_map(gmi.lat, gmi.lon, gmi.iwp)
         
 
+    matfiles = matfiles[:]
 
 #%%    
-    gmi = GMI(matfiles2)
+    gmi = GMI(matfiles)
     glat = gmi.lat.ravel()
     glon = gmi.lon.ravel()%360
     giwp = gmi.iwp.ravel()
@@ -204,21 +220,21 @@ if __name__ == "__main__":
     iwp_mean_dardar, latbins = bin_iwp(dlat, diwp)
     
 #%%    
-    fig, ax = plt.subplots(1, 1, figsize = [8, 12])
-    ax.plot(iwp_mean_gmi, latbins, 'r--', label = "f07 PSD")
-    ax.plot(iwp_mean_dardar, latbins, 'r', label = "DARDAR")
+    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+    ax.plot(iwp_mean_gmi[:], latbins, 'b--', label = "LPA + f07t")
+    ax.plot(iwp_mean_dardar[:], latbins, 'b', label = "DARDAR")
     
     
-    ax.set_xlabel("IWP [kg/m2]")
-    ax.set_ylabel("Lat [deg]") 
-    # ax.set_xscale('log')
+    ax.set_xlabel(r"IWP [kg m$^{-2}$]")
+    ax.set_ylabel(r"Latitude [\circ]") 
+    ax.grid("on", alpha = 0.3)    
     ax.legend()
     fig.savefig("Figures/IWP_GMI_dardar.png", bbox_inches = "tight")    
     
 #%% PDF of IWP
     
 
-    bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5, 10, 20, 50, 100, 200])
+    bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5, 10, 15, 20, 25])
     
     #bins = np.arange(0, 200, 0.0001)
     ghist, _ = np.histogram(giwp[gmask], bins, density = True )
@@ -231,14 +247,14 @@ if __name__ == "__main__":
     
     #ax.plot(bin_center, shist, 'o-', label = "SI" )
     ax.plot(bin_center, dhist, 'o-', label = "DARDAR" )
-    ax.plot(bin_center, ghist, 'o-',label = "GMI" )
+    ax.plot(bin_center, ghist, 'o-',label = "LPA + f07t" )
     
-    ax.set_xlabel("IWP [kg/m2]")
+    ax.set_xlabel(r"IWP [kg m$^{-2}$]")
     ax.set_ylabel("PDF")
     ax.legend()
     ax.set_yscale("log")
     ax.set_xscale("log")
-    
+    ax.grid("on", alpha = 0.3)
     fig.savefig("Figures/PDF_IWP.png", bbox_inches = "tight")
    
     

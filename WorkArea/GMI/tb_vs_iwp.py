@@ -57,8 +57,8 @@ def plot_pd(allmask, mask, ax):
     fig.colorbar(cs, label=r"IWP [kg m$^{-2}$]", shrink = 0.8, ax = ax)
 
 #%%
-inputfile = "jan2020_IWP_he_loglinear.nc"
-tbfile = "jan2020_tb.nc"
+inputfile = "jan2020_IWP_lpa.nc"
+tbfile = "jan2020_tb_lpa.nc"
   
 #%%  
 dataset1 = xarray.open_dataset(inputfile)
@@ -116,10 +116,10 @@ ax[1].set_ylim([-10, 70])
 
 
 #%%
-fig, ax = plt.subplots(1, 1, figsize = [8, 8])
-bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5,7,8, 9, 10,12, 14, 16, 20])
-ax.scatter(aro.iwp_mean.data[mask][::50], tro.iwp_mean.data[mask][::50])
-ax.legend()
+#fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+#bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5,7,8, 9, 10,12, 14, 16, 20])
+#ax.scatter(aro.iwp_mean.data[mask][::50], tro.iwp_mean.data[mask][::50])
+#ax.legend()
 
 #%%
 isnow = glsm == 2

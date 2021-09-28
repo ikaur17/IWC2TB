@@ -9,10 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker, cm
 
-def plot_hist(ta, tb, figname = "contour2d.png"):
+def plot_hist(ta, tb, figname = "contour2d.png", ax = None):
 
-    
-    fig, ax = plt.subplots(1, 1, figsize = [12, 12])
+    if ax == None:
+        fig, ax = plt.subplots(1, 1, figsize = [8, 8])
     
     xdat = ta[:, 0]
     ydat = ta[:, 0] -  ta[:, 1]
@@ -64,9 +64,10 @@ def plot_hist(ta, tb, figname = "contour2d.png"):
     ax.plot(xdat1, ydat1, '.',color="tab:red",  alpha = 0.2)
     lines = [ cs.collections[0], cs_gmi.collections[0]]
 #    labels = ['CS1_neg','CS1_pos','CS2_neg','CS2_pos']
-    plt.legend(lines, ["simulated", "observed"], loc = 'upper left')
-    ax.set_xlabel(" Brightness temperature 166 V [K] ")
-    ax.set_ylabel("Polarisation difference [V-H] [K]")
+    ax.legend(lines, ["simulated", "observed"], loc = 'upper left')
+    #ax.set_xlabel(" Brightness temperature 166 V [K] ")
+    #ax.set_ylabel("Polarisation difference [V-H] [K]")
+    #ax.set_title("TRO")
     
     # p = [(222,52), (270,52),  (270,16), (222,16),]
     # poly = plt.Polygon(p, ec="tab:gray", fc = None, fill = 0, ls = '--', lw = 2)
@@ -93,4 +94,4 @@ def plot_hist(ta, tb, figname = "contour2d.png"):
     #         fontsize=28,
     #         horizontalalignment='right', verticalalignment='top')
 
-    fig.savefig("Figures/" + figname, bbox_inches = "tight")    
+    #fig.savefig("Figures/" + figname, bbox_inches = "tight")    
