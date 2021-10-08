@@ -160,7 +160,7 @@ A bulk database of two-dimensional atmospheric scenes is created based on Clouds
 
 ERA5 data are collocated in space and time with the ascending and descending orbits of Cloudsat. The latitudinal grid is derived from Cloudsat orbit, while a custom vertical grid from -700\,\,m to 20000\,\,m is defined. The vertical grid spacing is 125\,\,m upto 8\,\,km and 250\,\,m beyond 8\,\,km. Land and water are classified using ERA5 land sea mask. Furthermore, the locations with snow depth larger than 0.002\,\,m are classified as snow. The seaice cover is used to classify the seaice surface type. For brevity, we assume that seaice locations are covered with snow, thus the same snow-emisivity model (Sect.~\ref{sec:snow_emissivity}) is valid. For each Cloudsat orbit, a random selection of seaice is made. The randomness helps to avoid an over-representation of the snow covered seaice. 
 
-All values of liquid water content below $10^{-8}$ or at temperature lower than 248\,\,K are also set to zero. Variation in Oxygen and Nitrogen with the amount of water vapour in the air is also considered.  
+All values of liquid water content below $10^{-8}$ or at temperature lower than 248\,\,K are also set to zero. Variation in Oxygen and Nitrogen with the amount of water vapour in air is also considered.  
 
 In 2011, CPR suffered from a battery anomaly and has operated in daylight-only mode since then. In order to avoid any bias due to limited temporal coverage, we select random CloudSat profiles from 2009. The data is constrained between $65^{\circ}$S and $65^{\circ}$N to match the GMI latitudinal coverage. 
 
@@ -203,7 +203,7 @@ Furthermore, since the radiative transfer uses radar reflectivities to generate 
 \subsection{Generation of databases}
 \label{sec:database}
 
-Using the ARTS setup described above, four type of databases are considered. These databases are identical in all aspects but particle type and orientation. A summary of these databases is given in Table~\ref{tab:database_configuration}.  For database with random orientation $\rho = 1$, while for the other  database which considers orientation, $\rho> 1$ and is selected from a distribution. Details are described in Sect.~\ref{sec:polratio}
+Using the ARTS setup described above, two type of databases are considered. These databases are identical in all aspects but particle  orientation. A summary of these databases is given in Table~\ref{tab:database_configuration}. For database with random orientation $\rho = 1$, while for the other  database which considers orientation, $\rho> 1$ and is selected from a distribution. Details are described in Sect.~\ref{sec:polratio}
 
 For both databases, the polarisation ratio applied to radar backscattering is kept identical.
  
@@ -216,19 +216,17 @@ For both databases, the polarisation ratio applied to radar backscattering is ke
 		\middlehline
 		LPA-ARO & Large plate aggregate & ARO\\
 		LPA-TRO & Large plate aggregate & TRO\\
-		ESA-ARO & Evans snow aggregate & ARO\\
-		ESA-TRO & Evans snow  aggregate & TRO\\
 		\bottomhline
 	\end{tabular}
 	\belowtable{} % Table Footnotes
 \end{table}
 
-Using the simulations setup described in previous sections, approximately 1\,200\,000 pencil beam calculations were made for each of the four databases. These calculations are based on randomly selected CloudSat orbits during January 2009, but each database has the same set of inputs.
+%Using the simulations setup described in previous sections, approximately 1\,200\,000 pencil beam calculations were made for each of the four databases. These calculations are based on randomly selected CloudSat orbits during January 2009, but each database has the same set of inputs.
 
 \todo{add a plot showing comparison of IWP in database to DARDAR}
 
 
-\subsection{Retrieval Algorithm}
+\subsection{Retrieval algorithm}
 \label{sec:retrieval_algo}
 
 \begin{figure}[t]
@@ -237,7 +235,7 @@ Using the simulations setup described in previous sections, approximately 1\,200
 	\label{fig:flowchart}
 \end{figure}
 
-The main idea of this study is to combine a database based on radiative transfer with machine learning (ML) to retrieve IWP and assess the impact of orientation on accuracy. The ML algorithm (described below) uses the database to give the posterior knowledge of the quantity sought, given the scene of observations. Using ML on a retrieval database for inverting TB to IWP has advantages over the traditional inversion techniques because ML can avoid the uncertainties introduced by approximations. 
+The main idea of this study is to generate a database of GMI measurements based on radiative transfer, combine it with machine learning (ML) to retrieve IWP and assess the impact of orientation on retrieval accuracy. Figure~\ref{fig:flowchart} provides a flowchart of the scheme. The ML algorithm (Sect.~\ref{sec:QRNN}) uses the database to give the posterior knowledge of the quantity sought, given the scene of observations. Using ML on a retrieval database for inverting TB to IWP has advantages over the traditional inversion techniques because ML can avoid the uncertainties introduced by approximations. 
 
 \subsubsection{QRNN}
 \label{sec:QRNN}
@@ -252,44 +250,41 @@ The retrievals are based on a neural network based method called Quantile Regres
 \label{loss_function}
 \end{equation}
 
-QRNN is available open source software quantnn \citep{} implemented with PyTorch backend \citep{paszke2017automatic}. The optimal configuration implemented for this study is described in Appendix~\ref{app:qrnn_conf}
+QRNN is available open source software quantnn \citep{} implemented with PyTorch backend \citep{paszke2017automatic}. The optimal QRNN configuration implemented for this study is described in Appendix~\ref{app:qrnn_conf}
 
-
-
-
+The output of QRNN is the posterior distribution of the estimate. This is different from the conventional retrieval methods which provide single point estimates. The quantiles quantify the prediction uncertainty through a probabilistic upper and lower bound for each case. While the posterior distribution has it own advantages, but for evaluating retrieval accuracy, usually the median quantile or the  expectation value $\mathbb{E}[y]$ as the point estimate is chosen as the point estimate. In this study, the point comparisons are made with the $\mathbb{E}[y]$. 
  
-\subsection{QRNN trainings}
-\label{sec:qrnn_trainings}
-To scrutinize the impact of databases on the retrieval performance, a separate QRNN is trained for each of the two databases : LPA-ARO, LPA-TRO(sect.~\ref{sec:database}). The basic construction of all trainings is identical (sect.~\ref{sec:QRNN}), except for the input database each is based on. 
+%\subsection{QRNN trainings}
+%\label{sec:qrnn_trainings}
+%To scrutinize the impact of databases on the retrieval performance, a separate QRNN is trained for each of the two databases : LPA-ARO, LPA-TRO(sect.~\ref{sec:database}). The basic construction of all trainings is identical (sect.~\ref{sec:QRNN}), except for the input database each is based on. 
 
-Furthermore, two additional QRNN trainings are considered to monitor the impact of oriented hydrometeors. These two trainings are based on databases LPA-ARO and LPA-TRO, but the input data is slightly different. Here, instead of including both polarisation channels of 166\,\,GHz, only the V-polarised channel is included.
+%Furthermore, two additional QRNN trainings are considered to monitor the impact of oriented hydrometeors. These two trainings are based on databases LPA-ARO and LPA-TRO, but the input data is slightly different. Here, instead of including both polarisation channels of 166\,\,GHz, only the V-polarised channel is included.
 
-For each training, around 950\,000  simulations are used for training and around 200\,000 simulations are used for validation during the training. The validation data is the part of the dataset which is used during the development of the training algorithm to quantify its performance. This dataset is different from the test data, on which the results are based on. Additionally, another set of LPA-ARO simulations consisting of 100\,000 cases is used as a test dataset to evaluate the  basic retrieval performance. These simulations are not revealed to QRNN during training. 
+%For each training, around 950\,000  simulations are used for training and around 200\,000 simulations are used for validation during the training. The validation data is the part of the dataset which is used during the development of the training algorithm to quantify its performance. This dataset is different from the test data, on which the results are based on. Additionally, another set of LPA-ARO simulations consisting of 100\,000 cases is used as a test dataset to evaluate the  basic retrieval performance. These simulations are not revealed to QRNN during training. 
 
-\subsection{Evaluation metrics}
-\label{sec:evaluation}
+%\subsection{Evaluation metrics}
+%\label{sec:evaluation}
 
-In this study, a statistical comparison of the simulations and observations is made. In order to select the best performing polarisation ratio, the divergence between two statistical distributions is calculated using  Jensen–Shannon divergence method \citep[J-S divergence,][]{lin:91:diver}.  It is a symmetric and smooth implementation of the Kullback–Leibler divergence \citep{Joyce:kl:11}. If $P^o$ and $P$ are two probability distributions and $KL (P^o \parallel P)$ denotes the Kullback–Leibler divergence between the two, then square root of the J-S divergence is defined as:
+%In this study, a statistical comparison of the simulations and observations is made. If $P^o$ and $P$ are two probability distributions and $KL (P^o \parallel P)$ denotes the Kullback–Leibler divergence between the two, then square root of the J-S divergence is defined as:
+ 
+%\begin{equation}
+%JSD(P^o \parallel P) = 0.5 \times (D(P^o \parallel R)+D(P \parallel R))
+%\end{equation}
 
-\begin{equation}
-JSD(P^o \parallel P) = 0.5 \times (D(P^o \parallel R)+D(P \parallel R))
-\end{equation}
+%where, $R = 0.5 \times (P^o + P)$ is the mid-point of the probability vectors $P^o$ and $P$. $JSD$ can take values between $[0, \inf]$, where small values indicate low divergence. $JSD$ is equal to zero only if $P^o$ and $P$ are identical distributions. For two-dimensional distributions, the divergence can be calculated along both dimensions.
 
-where, $R = 0.5 \times (P^o + P)$ is the mid-point of the probability vectors $P^o$ and $P$. $JSD$ can take values between $[0, \inf]$, where small values indicate low divergence. $JSD$ is equal to zero only if $P^o$ and $P$ are identical distributions. For two-dimensional distributions, the divergence can be calculated along both dimensions.
+%Further, to evaluate the accuracy of the retrievals, it is crucial to describe on the output of QRNN. 
 
-Further, to evaluate the accuracy of the retrievals, it is crucial to describe on the output of QRNN. Conventional retrieval methods provide single point estimates, but QRNN retrieves the posterior distribution in terms of quantiles. The quantiles quantify the prediction uncertainty through a probabilistic upper and lower bound for each case. For evaluating the retrieval accuarcy, we have selected the expectation value $\mathbb{E}(y)$ as the point estimate. We select commonly used metrics such as bias and mean absolute error (MAE). An additional metric known as fractional error (FE) is also used. Due to the dynamic range of IWP, FE has been utilised by \citet{holl:spare:14, brath:micro:20}  to compare the accuracy of retrieved IWPs. If $y_o$ and $y_r$ are the reference and the retrieved IWPs, respectively, the FE is defined as:
+ %We select commonly used metrics such as bias and mean absolute error (MAE). An additional metric known as fractional error (FE) is also used. Due to the dynamic range of IWP, FE has been utilised by \citet{holl:spare:14, brath:micro:20}  to compare the accuracy of retrieved IWPs. If $y_o$ and $y_r$ are the reference and the retrieved IWPs, respectively, the FE is defined as:
 
-\begin{equation}
-FE = e^{\log\left|\frac{y_r}{y_o}\right|} - 1
-\end{equation}
-
-
-
+%\begin{equation}
+%FE = e^{\log\left|\frac{y_r}{y_o}\right|} - 1
+%\end{equation}
 
 \section{Results}
 
 \subsection{Polarisation ratio}
-\label{sec:polratio}
+\label{sec:polratio_selection}
 
 The polarisation effects introduced by oriented particles and observed by conically scanning instruments \citep{gong:micro:17} were replicated by \citet{barlakas:intro:21}. They introduced a a simple scaling factor which mimics the differences between H and V polarisations caused by ice hydrometeor scattering. For TRO particles, the scattering is isotropic, hence there is no difference in the extinction of between the two polarisations. However, oriented hydrometeors due to dichroism effects, introduce differences between the two, and the correction factor is a simple way to approximate this effect. To model the effect of ARO particles, a correction factor ($\alpha$) is used to increase and decrease the layer optical thickness ($\tau$) in the H- and V-
 polarised channels, respectively, and the ratio of the modified layer optical thickness gives the polarisation ratio:
@@ -330,7 +325,7 @@ Multiple experiments with different values of $\rho$ were conducted. All these e
 %	\label{fig:divergence_esa}
 %\end{figure}
 
-Figure~\ref{fig:PD_166} shows the PD-TB$_V$ relationship obtained while using a constant value of $\rho$ over water and land. Here the simulations do not have a one-to-one correspondence with the observations. But it is also not necessary to evaluate the performance of $\rho$. We are only interested in the match between the two distributions in a statistical sense. In fact, the four datasets shown in the figure do not come from identical synthetic scenes, but have almost identical number of cases (\todo{give number}) and are from the same month, January. Some statistical fluctuations due to inconsistency between the datasets can be expected, but it should not alter the overall behaviour significantly. Furthermore, Fig.~\ref{fig:PD_166} only provides a qualitative view, so in order to quantify the measure of similarity between the observed and simulated PD-TB$_V$ distributions, we employ the K-L divergence method (Sect.~\ref{sec:evaluation}) to calculate the fit between two-dimensional histograms of observations and simulations. While estimating the histograms some bins end up as empty. Such bins are replaced by a small number to avoid infinite penalty. The divergence results over water and land are displayed in Fig.~\ref{fig:divergence_PD_water}.
+Figure~\ref{fig:PD_166} shows the PD-TB$_V$ relationship obtained while using a constant value of $\rho$ over water and land. Here the simulations do not have a one-to-one correspondence with the observations. But it is also not necessary to evaluate the performance of $\rho$. We are only interested in the match between the two distributions in a statistical sense. In fact, the four datasets shown in the figure do not come from identical synthetic scenes, but have almost identical number of cases (\todo{give number}) and are from the same month, January. Some statistical fluctuations due to inconsistency between the datasets can be expected, but it should not alter the overall behaviour significantly. Furthermore, Fig.~\ref{fig:PD_166} only provides a qualitative view, so in order to quantify the measure of similarity between the observed and simulated PD-TB$_V$ distributions, we employ the Kullback–Leibler (KL) divergence \citep{Joyce:kl:11} to calculate the fit between two-dimensional histograms of observations and simulations. While estimating the histograms some bins end up as empty. Such bins are replaced by a small number to avoid infinite penalty. The divergence results over water and land are displayed in Fig.~\ref{fig:divergence_PD_water}.
 
 We will firstly discuss results over water. When $\rho = 1$, no orientation effects are simulated and the maximum PD is observed to be around 5\,K, but most cases are close to zero PD. While this is also an important part of the observed distribution, the high PDs are completely missed and this is also indicated by high divergence along both TB and PD dimensions. As $\rho$ increases, the impact of the orientation comes into play, and the distribution of PDs moves towards higher values, and this is also reflected as a dip in divergence along the PD dimension.  $\rho = 1.4$, can simulate most of the highest observed PDs between 15 and 20\,K, but some extremely high polarisation signals are missed. While $\rho$ > 1.4  could be included to reproduce the few cases with extremely high PDs (> 20\,K) but it shall also increase the PDs over the slopes on either side of the peak. Already some impact of over-representation is reflected for $\rho =$ 1.3 and 1.4 in region with TBs > 225\,K and TBs < 150\,K. While some extra variability in the simulations, but within physical limits is acceptable, $\rho > 1.4$ seems unfeasible at least in the current set of microphysical assumptions. \citet{barlakas:intro:21} also showed that values greater than 1.4 lead to an increasing mismatch between the observations and simulations. Further, among all simulation datasets shown here, none is able to reach the lowest end of the TBs, and this is reflected by the high divergences below 125\,K. From the scatterplots it is obvious that constant value of $rho$ cannot reproduce the entire range of observed PDs, but it is  interesting to see that lowest differences occur for  $\rho = 1.2$. This suggests that 1.2 is an important value which can reproduce the polarisation signals following the median of PD-TB$_{v}$ relationship. This maximum of the PD median is reflected by the drop in divergence along the PD dimension. The maximum PD for $\rho = 1.2$ is 12\,K. This is comparable to the PD median calculated by \citet{galligani}. 
 
@@ -344,7 +339,24 @@ Over land, however a slightly different behaviour is observed. With both distrib
 
 Finally, among the two distributions of $\rho$, the uniform distribution emerges to be better performing but only with small margin. It is has slightly better results towards the TB depressions and higher PDs. Thus a distribution centered around 1.2 is a requisite, but cases with random orientation and extremely PDs should also be equally represented. A truncated normal distribution with larger variance should also give comparable results. 
 
-Additionally, we also explored the effective range of $\rho$ for evans snow aggregate. These results are described in Appendix~\ref{}. 
+Additionally, we also explored the effective range of $\rho$ for evans snow aggregate. These results are described in Appendix~\ref{app:esa}. 
+
+\subsubsection{Polarisation differences over land and water}
+%
+\label{sec:PD}
+\begin{figure}[t]
+	\includegraphics[width=6cm]{Figures/hist2d_land_water_jan.pdf}
+	\caption{Polarisation differences (166V - 166H) as a function of
+		TB 166V GHz for observed (red) and simulated (blue) for
+		different surface types. The curves denote the maximum probability of the two-dimensional histogram. The low density points are plotted as dots. }
+	\label{fig:PD_water_land}
+\end{figure}
+
+Figure~\ref{fig:PD_water_land} shows the observed and simulated PDs.PDs from surface contribution are not filtered out. For both surface types, the TB-PD relationship is characterised by a strong arm consisting of very high PDs centered around 250\,\,K and a cluster of cases forming a arch like structure. The strong vertical arm is due to polarisation signals introduced by surface emissions. The strongest PD are observed over land and water under dry atmospheric conditions. In the presence of water vapour, the signal from the surface is attenuated and the PDs cluster around the bottom tip of the distribution. For snow and seaice the vertical arm is weak. It mostly consists of contribution from mixed surface types: snow/land boundary and seaice/water boundary respectively. 
+
+As earlier mentioned, we are highly interested in the arch region, where maximum impact of ice hydrometeors lies. For land and water the arch is quite strong. For these surface types, the maximum PD (~20\,\,K) are centered around 200\,\,K. The PDs diminish towards the colder TBs, while towards the warmer end, the PDs from clear-sky overlap. \citet{gong:micro:17} describe these PDs in detail. The overall arch shape arises from the combined effect of ARO and TRO particles. The horizontally aligned particles produce the maximum PD and these particles are usually part of convective outflow regions like anvil. However, in turbulent systems, the multiple scattering processes decrease the PD. The lowest observed PD are close to 0\,\,K, which occur for the coldest TB, representing the deep convection systems. The negative PDs also occur, but they are mostly associated with the clear-sky measurements affected by noise. 
+
+
 
 \subsection{Snow emissivity model}
 \label{sec:snow_emissivity}
@@ -374,14 +386,17 @@ In this study, snow over both land and seaice were treated identically.
 
 \subsubsection{PDs over snow covered surfaces}
 %
+\begin{figure}[t]
+	\includegraphics[width=6cm]{Figures/hist2d_snow_surface_jan.pdf}
+	\caption{Same as Fig.~\ref{fig:PD_water_land} but for snow covered surfaces and seaice.}
+	\label{fig:PD_snow}
+\end{figure}
+
 Figure~\ref{fig:PD_snow} shows a comparison of the observed and simulated PDs over snow and seaice surface types. All observations classified under seaice/water boundary and snow/land boundary are also included. It is clarified that for snow and seaice surface types, the distribution of PDs is combined effect of scattering signatures from surface and hydrometeor impact; no filtering is applied. However, the hydrometeor impact is expected to be small as high latitude winters scenarios are mostly associated with extremely dry atmosphere. 
   
-For surfaces covered with snow, the PDs consist of a distinct arch type distribution with maximum PDs around 10\,K and a weak arm consisting of PDs as high as 50\,K. The arm type structure is present only in the observations. 
+For surfaces covered with snow, the PDs consist of a distinct arch type distribution with maximum PDs around 10\,K and a weak arm consisting of PDs as high as 50\,K. For the arch region, the match between observed and simulated PDs is quite high, which endorses that the snow emissivity estimated by the empirical model can replicate the real observation. On the other hand, the high PDs observed along the arm are suggestive of surface impact but from a non-snow covered surface. An analysis of these cases along the arm revealed that they belong to snow covered surfaces lying close to water. GPROF classifies them under snow surface type, but actually they belong to snow/water boundary. The pure snow surface induced polarisation signatures are clustered in the flat region. These can also overlap with PDs observed from ice hydrometeor scattering. Without any additional information, it would not be trivial to separate one type of signal from the other. 
 
-
-However for seaice, 
-  
-However, for snow and seaice surface types the PD arch is not necessarily  the impact of ice hydrometeors. The flat cluster of PDs arises due to mixture of polarised signals originating from surface emissivity as well as ice particles. Surface snow has high emissivities which in presence of dry atmosphere can lead to polarisation signals up to 10\,\,K. It is not trivial to separate one type of signal from the other without any additional information. 
+Over seaice, the structure of PDs is slighly different than snow covered surfaces. Here the flat arch region is quite narrow and the concentration of observations along the arm is dense. It should be remember that in our emissivity model, seaice is assumed to be covered by snow, no other representation of seaice is considered. Snow over seaice only introduces PDs upto 10\,K as seen for pure snow covered surfaces over land. The higher PDs along the arm are a result of surface impact of seaice/water boundary. However, a subset of GMI observations belonging seaice surface class also have PDs along this arm. Such cases lie close to land masses and probably have a thin seaice cover. 
 
 
 \subsection{Comparison of simulations and measurements}
@@ -402,32 +417,17 @@ However, for snow and seaice surface types the PD arch is not necessarily  the i
 
 This section describes the distributions of simulated TBs for all four high frequency channels of GMI. The simulated values are based on random Cloudsat profiles thus only a statistical comparison with the observations is made. It is not necessary for the simulations to be collocated with the GMI observations in space and time, but a similar variability between the two is expected. For retrieval to be successful, the database should reflect the realistic scenarios. 
 
-Figure~\ref{fig:hist_TB} shows the distribution of simulated TBs for each channel and all four databases (see sect.~\ref{sec:database}). The distribution of GMI observations is also plotted in black. For all four channels, the peak of the distributions correspond to the clear-sky scenarios, while the coldest TBs are associated with deep convective systems. For clear-sky cases, all four databases agree well with GMI.
+Figure~\ref{fig:hist_TB} shows the distribution of simulated TBs for each channel and the two databases (sect.~\ref{sec:database}). The distribution of GMI observations is also plotted in black. For all four channels, the peak of the distributions correspond to the clear-sky scenarios, while the coldest TBs are associated with deep convective systems. For clear-sky cases, all four databases agree well with GMI.
 
-However, over the colder part of the TBs none of the four databases are able to reproduce the exact distribution. With large plate aggregate, the forward simulations put more cases with low TBs, while with evans snow aggregate, the model falls short of simulating the coldest TBs. At the intermediate region (between 170\,\,K and 250\,\,K) the simulations have a high occurrence frequency for all channels except 183$\pm$3. Analysing the distributions according to surface type and latitudinal extent revealed that the mismatch is removed when TBs over snow surface type are not included (not shown). This could be due to the forward simulations having a larger representation of snow cases than GMI. Since snow cover is a variable quantity, a comparison between data from different time scales can introduce such artefacts. 
+However, over the colder part of the TBs none of the two databases is able to reproduce the exact distribution. With large plate aggregate, the forward simulations put more cases with low TBs. At the intermediate region (between 170\,\,K and 250\,\,K) the simulations have a high occurrence frequency for all channels except 183$\pm$3. Analysing the distributions according to surface type and latitudinal extent revealed that the mismatch is removed when TBs over snow surface type are not included (not shown). This could be due to the forward simulations having a larger representation of snow cases than GMI. Since snow cover is a variable quantity, a comparison between data from different time scales can introduce such artefacts. 
 
-Inclusion of ARO particles has a small impact on occurence frequency of colder TBs. With both habits, when only TRO particles are simulated, the deep convection zone has a higher frequency of colder TBs for V-polarised channels. But when ARO particles are included, a drop in frequency indicates that slightly warmer TBs are simulated. Opposite effect is seen for H-polarised channel 166H\,\,GHz, where inclusion of ARO particles leads to colder TBs. This is also shown in Fig.~\ref{fig:TB_IWP}, which displays the peak probability density of the two-dimensional histogram between TB and IWP. For TRO particles, the differences between the V- and H- polarisations (or PD) are close to zero except for IWPs < 2\,\,kg m$^{-2}$, which occur due to the impact of surface emissions. However, for ARO particles, the PD are positive. This is due to the dichroism effects exhibited by scattering from horizontally oriented ice particles. As IWP increases, the TB depressions become more prominent, for example, or IWP around 6\,\,kg m$^{-2}$ the PD is around 25\,\,K. But the PD do not increase drastically with an increase in the IWPs, but instead, a saturation in the PD is seen. Similar pattern is also seen for Evans snow aggregate, but compared to Large plate aggregate, it results in higher IWPs associated with warmer TBs. 
+Inclusion of ARO particles has a small impact on occurrence frequency of colder TBs. When only TRO particles are simulated, the deep convection zone has a higher frequency of colder TBs for V-polarised channels. But when ARO particles are included, a drop in frequency indicates that slightly warmer TBs are simulated. Opposite effect is seen for H-polarised channel 166H\,\,GHz, where inclusion of ARO particles leads to colder TBs. This is also shown in Fig.~\ref{fig:TB_IWP}, which displays the peak probability density of the two-dimensional histogram between TB and IWP. For TRO particles, the differences between the V- and H- polarisations (or PD) are close to zero except for IWPs < 2\,\,kg m$^{-2}$, which occur due to the impact of surface emissions. However, for ARO particles, the PD are positive. This is due to the dichroism effects exhibited by scattering from horizontally oriented ice particles. As IWP increases, the TB depressions become more prominent, for example, or IWP around 6\,\,kg m$^{-2}$ the PD is around 25\,\,K. But the PD do not increase drastically with an increase in the IWPs, but instead, a saturation in the PD is seen. TB distributions with evans snow aggregate are shown in Appendix~\ref{app:esa}.
+
+
+%Similar pattern is also seen for Evans snow aggregate, but compared to Large plate aggregate, it results in higher IWPs associated with warmer TBs. 
 
 
 %In the intermediate TB range, as seen before, the impact of oriented particles is small. But for same value of TB at H- and V-polarisations, the latter measures a higher IWP. For the convective zone, for TRO particles, TB depressions caused by same amount of IWP at both H- and V- polarisations are quite similar. However, with ARO particles, higher IWPs lead to similar TB depression as H-polarisation. Thus V-polarisation for identical IWP content will measure warmer radiances due to oriented particles. Or in other words, equal TBs will result in higher IWPs for oriented particle. For H-polarisation, an opposite effect will be seen. For oriented particles, equal TBs will result in lower IWPs.
-
-\subsubsection{Polarisation differences}
-\label{sec:PD}
-
-\begin{figure}[t]
-	\includegraphics[width=8.3cm]{Figures/hist2d_all_surface_jan.pdf}
-	\caption{Polarisation differences (166V - 166H) as a function of
-		TB 166V GHz for observed (red) and simulated (blue) for
-		different surface types. The curves denote the maximum probability of the two-dimensional histogram.}
-	\label{fig:PD}
-\end{figure}
-
-This section provides a more thorough description of the PDs.  Figure~\ref{fig:PD} shows the observed and simulated PDs categorised by the surface type. PDs from both surface contribution and hydrometeor scattering are included. For all four surface types, the TB-PD relationship is characterised by a strong arm consisting of very high PDs centered around 250\,\,K and a cluster of cases forming a arch like structure. The arch is stronger over land and water than snow and seaice. 
-
-The strong vertical arm is due to polarisation signals introduced by surface emissions. The strongest PD are observed over land and water under dry atmospheric conditions. In the presence of water vapour, the signal from the surface is attenuated and the PDs cluster around the bottom tip of the distribution. For snow and seaice the vertical arm is weak. It mostly consists of contribution from mixed surface types: snow/land boundary and seaice/water boundary respectively. 
-
-As earlier mentioned, we are highly interested in the arch region, where maximum impact of ice hydrometeors lies. For land and water the arch is quite strong. For these surface types, the maximum PD (~20\,\,K) are centered around 200\,\,K. The PDs diminish towards the colder TBs, while towards the warmer end, the PDs from clear-sky overlap. \citet{gong:micro:17} describe these PDs in detail. The overall arch shape arises from the combined effect of ARO and TRO particles. The horizontally aligned particles produce the maximum PD and these particles are usually part of convective outflow regions like anvil. However, in turbulent systems, the multiple scattering processes decrease the PD. The lowest observed PD are close to 0\,\,K, which occur for the coldest TB, representing the deep convection systems. The negative PDs also occur, but they are mostly associated with the clear-sky measurements affected by noise. 
-
 
 
 
@@ -567,21 +567,18 @@ Figure~\ref{fig:zonal_mean_GMI} shows the zonal means for these four datasets. W
 \section{Discussion}
 
 \subsection{Selecting polarisation ratio}
+%
+The results from different selections for $\rho$ show that a constant value is not sufficient to mimic a realistic PD distribution. While inclusion of ARO particles is important, effect from TRO cannot be completely ignored. In reality, the polarisation patterns depend on the microphysical properties, and the complex mixture of hydrometeors in the atmosphere can generate a plethora of polarisation signals. The scattering from oriented particles is most significant in the convective outflow regions, while in deep convective cores the turbulence forces the particles to be randomly oriented. \citet{gong:micro:17} also describe the PD along the arch to be a combined effect of randomly and horizontally oriented particles. These wide spectrum of polarisation signals cannot be reproduced correctly by constraining the particle model to only one habit and size distribution, and one polarisation ratio. In this study, since we accomodate only one particle model, choosing a constant $\rho$ constrains the PDs to a narrow range. A random selection of $\rho$ can alleviate this limitation to a certain extent. 
 
 
 
-
-
-The results from different selections for $\rho$ show that a constant value is not sufficient to mimic a realistic PD distribution. While inclusion of ARO particles is important, effect from TRO cannot be completely ignored. In reality, the polarisation patterns depend on the microphysical properties, and the complex mixture of hydrometeors in the atmosphere can generate a plethora of polarisation signals. The scattering from oriented particles is most significant in the convective outflow regions, while in deep convective cores the turbulence forces the particles to be randomly oriented. \citet{gong:micro:17} also describe the PD along the arch to be a combined effect of randomly and horizontally oriented particles. These wide spectrum of polarisation signals cannot be reproduced correctly by constraining the particle model to only one habit and size distribution, and one polarisation ratio. In this study, since we accomodate only one particle model, choosing a constant $\rho$ constrains the PDs to a narrow range. A random selection of $\rho$ can alleviate this limitation to a certain extent. Based on the results from the five experiments described above, we select $\rho$ from a uniform distribution between [1, 1.4]. 
-
-
-A comparison of $\rho$ for these two hydrometeors demonstrates that polarisation signals are not affected by the microphysical representation \todo{is this correct? While range for both habits is similar, Barlakas et al show it differently. }  
+%A comparison of $\rho$ for these two hydrometeors demonstrates that polarisation signals are not affected by the microphysical representation \todo{is this correct? While range for both habits is similar, Barlakas et al show it differently. }  
 
 \subsection{TB and PD distributions}
 
-The comparison of GMI observations and simulations shows that an overall agreement is fairly good. The main differences exist towards the colder brightness temperatures which reflect the deep convections systems. The mismatch is higher as only one habit and PSD are considered in each database. However, both particle habits have a very different behaviour towards the convective end. Large plate aggregate results in larger TB depressions than evans snow aggregate. The effect can be explained by the interaction of particles with electromagnetic radiation. Under the assumed PSD, F07T, the larger ice particles introduce higher scattering for increasing values of IWC, and for lower IWC, the impact of intermediate size particle (effective diameter $\sim$ 0.5\,\,mm) dominates. While this is a general behaviour, the exact scattering impact depends on the mass-size relationship of the particle model. Thus for the convective zone where IWC is higher, notable differences are observed between the two particle models. Large plate aggregate, which has larger cloud ice particles, puts colder TBs in the convective zone in comparison to evans snow aggregate, due to higher scattering. However, for the intermediate zone, where contribution from liquid particles dominates, the two particles models produce comparable TBs. Better agreement with GMI observations can be achieved by assuming multiple particle habits and PSD. Such a complex microphysical scheme would also require additional auxiliary data to identify the cloud scenarios.  
+The comparison of GMI observations and simulations shows that an overall agreement is fairly good. The main differences exist towards the colder brightness temperatures which reflect the deep convections systems. The mismatch is higher as only one habit and PSD are considered in each database. However, both particle habits have a very different behaviour towards the convective end. Large plate aggregate results in larger TB depressions than evans snow aggregate (see Appendix~\ref{app:esa}). The effect can be explained by the interaction of particles with electromagnetic radiation. Under the assumed PSD, F07T, the larger ice particles introduce higher scattering for increasing values of IWC, and for lower IWC, the impact of intermediate size particle (effective diameter $\sim$ 0.5\,\,mm) dominates. While this is a general behaviour, the exact scattering impact depends on the mass-size relationship of the particle model. Thus for the convective zone where IWC is higher, notable differences are observed between the two particle models. Large plate aggregate, which has larger cloud ice particles, puts colder TBs in the convective zone in comparison to evans snow aggregate, due to higher scattering. However, for the intermediate zone, where contribution from liquid particles dominates, the two particles models produce comparable TBs. Better agreement with GMI observations can be achieved by assuming multiple particle habits and PSD. Such a complex microphysical scheme would also require additional auxiliary data to identify the cloud scenarios.  
 
-To understand the differences in TBs originating from particle orientation, it is crucial to elucidate how radiation scattering varies with orientation. When a particles is randomly oriented, the radiation scattering is isotropic, i.e., it is independent of the line of sight. While for oriented particles, the scattering exhibits anisotropy. The anisotropic behaviour results in angular dependency of the extinction. For ARO particles, which are oriented but scatter randomly in the azimuthal direction, only the extinction between V- and H-polarisations is relevant \citep{brath:micro:20, barlakas:intro:21}. For horizontally oriented non-spherical particles, scattering dominates (increased extinction) in the H-polarisation, which leads to larger TB depressions i.e., colder TBs. At the same time, the V-polarisation has decreased scattering (decreased extinction) and results in warmer TBs. These scattering effects determine the intensity of the polarisation signal. In presence of thin cirrus clouds or clear-sky conditions, large polarisation differences are observed which are caused by surface emissions. The surface impact is stronger over water than land. Thick clouds, on the other hand block any surface contribution, and the measured polarisation signals are a result of pure hydrometeor scattering. In this region, the maximum observed PDs  are around 20\,\,K and 15\,\,K for  water and land respectively. These mostly correspond to convective outflow and stratiform precipitation as shown by \citet{gong:micro:17}. The multiple scattering processes accompanying the turbulent convection systems produces a decrease in the PDs. The PDs induced by hydrometeors are proportional to IWP but the relationship is not linear. With the increase of IWP, a saturation effect in PD is seen. The PD saturation occurs due to increasing optical opacity of the cloud with increasing IWP. Differences also exist between TB-IWP relationship for H- and V- polarisations. Oriented particles produce different amounts of scattering in V- and H- polarisations. For horizontally oriented particles, the scattering dominates in the horizontal direction and corresponding extinction is higher. However for large extinctions, saturation effects cause the PD to be smaller. This is also evident from Fig.~\ref{fig:TB_IWP}, where saturation in the extinction of H- polarisation leads to smaller differences between TBs based on ARO and TRO particles. Additionally, when the particles are assumed to be TRO (ARO), the higher (lower) extinction results in an decrease (increase) in the IWP, and vice-versa. On the contrary, at H-polarisation, TRO (ARO) particles give a higher (lower) IWP. With evans snow aggregate, a similar effect is observed but due to its smaller size, hence with lower optical depth, the IWP values are shifted to larger values.
+To understand the differences in TBs originating from particle orientation, it is crucial to elucidate how radiation scattering varies with orientation. When a particles is randomly oriented, the radiation scattering is isotropic, i.e., it is independent of the line of sight. While for oriented particles, the scattering exhibits anisotropy. The anisotropic behaviour results in angular dependency of the extinction. For ARO particles, which are oriented but scatter randomly in the azimuthal direction, only the extinction between V- and H-polarisations is relevant \citep{brath:micro:20, barlakas:intro:21}. For horizontally oriented non-spherical particles, scattering dominates (increased extinction) in the H-polarisation, which leads to larger TB depressions i.e., colder TBs. At the same time, the V-polarisation has decreased scattering (decreased extinction) and results in warmer TBs. These scattering effects determine the intensity of the polarisation signal. In presence of thin cirrus clouds or clear-sky conditions, large polarisation differences are observed which are caused by surface emissions. The surface impact is stronger over water than land. Thick clouds, on the other hand block any surface contribution, and the measured polarisation signals are a result of pure hydrometeor scattering. In this region, the maximum observed PDs  are around 20\,\,K and 15\,\,K for  water and land respectively. These mostly correspond to convective outflow and stratiform precipitation as shown by \citet{gong:micro:17}. The multiple scattering processes accompanying the turbulent convection systems produces a decrease in the PDs. The PDs induced by hydrometeors are proportional to IWP but the relationship is not linear. With the increase of IWP, a saturation effect in PD is seen. The PD saturation occurs due to increasing optical opacity of the cloud with increasing IWP. Differences also exist between TB-IWP relationship for H- and V- polarisations. Oriented particles produce different amounts of scattering in V- and H- polarisations. For horizontally oriented particles, the scattering dominates in the horizontal direction and corresponding extinction is higher. However for large extinctions, saturation effects cause the PD to be smaller. This is also evident from Fig.~\ref{fig:TB_IWP}, where saturation in the extinction of H- polarisation leads to smaller differences between TBs based on ARO and TRO particles. Additionally, when the particles are assumed to be TRO (ARO), the higher (lower) extinction results in an decrease (increase) in the IWP, and vice-versa. On the contrary, at H-polarisation, TRO (ARO) particles give a higher (lower) IWP. With evans snow aggregate, a similar effect is observed but due to its smaller size the optical depth is lower hence the IWP values will be shifted to larger values (not shown).
 
 
 
@@ -595,9 +592,9 @@ However, when both V- and H- polarisations are included, the retrievals with TRO
 
 It should also be noted that the ARO and TRO based retrievals are practically equivalent for small values of $\rho$, that is when PDs are small. The cases which contribute to differences between the two belong to high PDs, as expected. For $\rho > 1.3$, the retrieval error is almost 27\% larger when orientation is neglected. This is comparable to the retrieval error hypothesised by \citet{gong:micro:17}, if polarisation is neglected. These errors are mostly linked to the ice clouds in convective outflow regions, where maximum PDs are observed. However, it is important to stress  that in reality the PDs are a mixture of signals from both randomly and preferentially oriented particles, and the overall retrieval error is only 10\% larger if polarisation is neglected. 
 
-The retrieval accuracy also show a weak dependence on the surface type. Over snow, though the retrievals have a slightly lower accuracy, no clear relationship beween PD and error is observed. On the other hand, over seaice neglecting oriented particles results in lower accuracy. Since in this study, seaice and snow are modelled with identical surface emissivities, differences in the retrieval performance can be attributed to small representation of seaice cases in the database. In the training database, only 0.75\% of the cases are classfied at seaice while 9\% cases have snow coverage.
+The retrieval accuracy shows a weak dependence on the surface type. Over snow, though the retrievals have a slightly lower accuracy, no clear relationship between PD and error is observed. On the other hand, over seaice neglecting oriented particles results in lower accuracy. Since in this study, seaice and snow are modelled with identical surface emissivities, differences in the retrieval performance can be attributed to small representation of seaice cases in the database. In the training database, only 0.75\% of the cases are classfied at seaice while 9\% cases have snow coverage.
 
-Interestingly retrievals over snow covered surfaces in the extratropics have the lower accuracy, than high latitudes. This could be explained by the n of radiation by water vapour. In the extratropics, higher water vapour can attenuate the signal and reduces the surface impact. The TBs can appear warmer despite the presence of snow on the surface.  On the other hand, for high latitude winter scenarios, the atmosphere is mostly dry and the surface contribution affects the measured TBs. The lack of water vapour in the atmosphere combined with low surface temperatures can result in low TBs which resemble TB depressions originating from cloud ice. In spite of that the retrieved IWPs do not show any significant degradation in the accuracy. This indicates that the machine learning model can learn to effectively differentiate between the signals induced by hydrometeors and surface, typically over complicated surface conditions. This is an important result as most of retrieval algorithms, including GPROF exclude surfaces covered with snow. In future, additional information such  surface emissivities or radiances could also be added to distinguish such overlapping signals and improve retrievals further, especially for extratropics.  
+Interestingly retrievals over snow covered surfaces in the extratropics have lower accuracy, than high latitudes. This could be explained by the n of radiation by water vapour. In the extratropics, higher water vapour can attenuate the signal and reduces the surface impact. The TBs can appear warmer despite the presence of snow on the surface.  On the other hand, for high latitude winter scenarios, the atmosphere is mostly dry and the surface contribution affects the measured TBs. The lack of water vapour in the atmosphere combined with low surface temperatures can result in low TBs which resemble TB depressions originating from cloud ice. In spite of that the retrieved IWPs do not show any significant degradation in the accuracy. This indicates that the machine learning model can learn to effectively differentiate between the signals induced by hydrometeors and surface, typically over complicated surface conditions. This is an important result as most of retrieval algorithms, including GPROF exclude surfaces covered with snow. In future, additional information such  surface emissivities or radiances could also be added to distinguish such overlapping signals and improve retrievals further, especially for extratropics.  
 
 \subsection{GMI retrievals}
 %
@@ -605,37 +602,30 @@ Interestingly retrievals over snow covered surfaces in the extratropics have the
 
 \subsection{Factors affecting retrieval performance}
 %
-The retrieval algorithm presented here is based on a observation database and machine learning, thus its quality drives the performance of the retrievals. The database is based on the inversions of Cloudsat reflectivities to IWC conditioned by microphysical assumptions. The assumptions with simplified microphysics, that is one particle habit and PSD constrains the forward model. Within an atmospheric scenario, all types of hydrometeors are reprseneted by one type of hydrometeor. While this assumption gives us good agreement with the GMI measurements, but the distribution over convective systems cannot be fully reproduced. This might not be much of an issue when it comes to evaluating the physical limits of the retrieval, however this shall introduce errors for measurements where the apriori assumptions will never be fulfilled for the convective regions.
+The retrieval algorithm presented here is based on a observation database and machine learning, thus its quality drives the performance of the retrievals. The database is based on the inversions of Cloudsat reflectivities to IWC conditioned by microphysical assumptions. The assumptions with simplified microphysics, that is one particle habit and PSD constrains the forward model. Within an atmospheric scenario, all types of hydrometeors are represented by one type of hydrometeor. While this assumption gives us good agreement with the GMI measurements, but the distribution over convective systems cannot be fully reproduced. This might not be much of an issue when it comes to evaluating the physical limits of the retrieval, however this shall introduce errors for measurements where the apriori assumptions will never be fulfilled for the convective regions.
 
 The retrieval for clear-sky/thin cirrus scenarios is affected by a systematic overestimation. While such cases occure frequently, the accuracy is limited by the sensitivity of satellite observations on which retrieval are based on. Cloudsat reflectivities on which our database is based on, are not sensitive to thin ice clouds. Additionally, the passive microwave instruments in mm range are also not sensitive to optically thin clouds. For such cases, the machine learning model only has the a priori information at its disposal. The sensitivity of QRNN to low IWP cases can only be improved either with additional input information, such as observations from sub-mm range, or by maximizing the information content of a priori by including LIDAR measurement in the inversions.
 
 Another factor which affects the accuracy is the bias originating from lack of representation of extreme values. IWP has a very high dynamic range and the very high IWPs of the order of 10\,\,kg m$^{-2}$ occur occasionally. However this can be certainly be improved by incorporating more data. In this study, the main objective is to highlight the importance of polarised observations on IWPs retrievals, this only a limited time analysis is provided. Extending our retrieval to other seasons and latitude range can help in improving the representation of extreme cases. 
 
-Modelling errors associated wuth radiative transfer and machine learning can also possibly introduce uncertainties, however they are not considered. 
-It should also be noted that retrievals errors with true measurements are expected to be larger due to instrument uncertainties which are not considered in the database. 
-
-
+Modelling errors associated with radiative transfer and machine learning can also possibly introduce uncertainties, however they are not considered. It should also be noted that retrievals errors with true measurements are expected to be larger due to instrument uncertainties which are not considered in the database. 
 
 
 \section{Summary and conclusions}
 %
 \label{sec:conclusions}
 
-In this study, we examine the role of preferentially oriented hydrometeors in retrieving the integrated amount of cloud ice, or IWP. The same with demonstrated with high frequency GMI measurements. The clouds are composed of multiple hydrometeors and the TB depressions caused by them are characterised by their scattering effects. The scattering from oriented hydrometeors introduces polarisation differences (PD) between TBs measured at H- and V- polarisations. These polarisation differences vary with the cloud microphysics, and can be advantageous for the accuracy of retrieval algorithms.  In radiative transfer simulations, assumptions of randomly oriented particles weakens the scattering impact. In the convective systems, this results in simulation of colder TBs than the measurements. . The PD and TB relationship is sensitive to the IWP and can offer additional information while retrieving cloud ice. Neglecting orientation can lead to PDs as high as 25\,\,K, which when ignored can introduce significant errors in retrieval algorithms 
+In this study, we examine the role of preferentially oriented hydrometeors in retrieving the integrated amount of cloud ice, or IWP. The same with demonstrated with high frequency GMI measurements. The clouds are composed of multiple hydrometeors and the scattering from oriented hydrometeors introduces polarisation differences (PD) between TBs measured at H and V polarisations. These PDs vary with the cloud microphysics and can affect for the accuracy of retrieval algorithms focussing on cloud ice. In radiative transfer simulations, assumptions of randomly oriented particles weakens the scattering impact. In the convective systems, this results in simulation of colder TBs than the measurements. The PD and TB relationship is sensitive to the IWP and can offer additional information while retrieving cloud ice. Neglecting orientation can lead to PDs as high as 25\,\,K, which when ignored can introduce significant errors in retrieval algorithms 
 
-We highlight the importance of polarised particle in IWP measurements by combining a database of a wide range of atmospheric scenarios and a machine learning algorithm to retrieve IWPs. The database is based on radiative transfer simulations, which  cover the full range of measurement space. These simulations are based on synthetic scenes using Cloudsat reflectivities. The reflectivities are converted to IWC assuming particle model comprising of large plate aggregate and f07t as particle size distribution. While it is possible to run a full radiative transfer including polarised particles, here we approximate these effects by scaling the optical properties of the hydrometeors. Assuming the ice hydrometeors to be horizontally oriented, we increase the extinction at H- polarisation and decrease it at V-polarisation. The scaling factor is a function of polarisation ratio ($\rho$), which can be defined as the ratio of modified layer optical thickness at H- and V- polarisations. This scheme was first introduced by \citet{barlakas:intro:21} for RTTOV. Here, we extend this scheme in ARTS setup to simulate GMI measurements. We optimize the valid range of $\rho$ by evaluating the measures of fit between the distributions of observed and simulated TBs from dual-polarised channels. Based on these results, a random selection of $\rho$ from a uniform distribution between 1 and 1.4  was judged to be the best performing. We do not make a one-to-one comparison between the simulations and observations, but selecting $\rho$ from a distribution than constant value reduces the disparities between the polarisation differences (PD) observed in the two distributions. In reality, the ice particles have complex habits and varying sizes. Additionally, their scattering properties vary with the atmospheric conditions. Variability in $\rho$ ensures that scattering effects of varying intensity are included. Further, the valid range of $\rho$ showed no dependency on the particle habit. 
+We highlight the importance of polarised particle in IWP measurements by combining a database of a wide range of atmospheric scenarios and a machine learning algorithm to retrieve IWPs. The database is based on radiative transfer simulations, which  cover the full range of measurement space. These simulations are based on synthetic scenes using Cloudsat reflectivities. The reflectivities are converted to IWC assuming particle model comprising of large plate aggregate and f07t as particle size distribution. While it is possible to run a full radiative transfer including polarised particles, here we approximate these effects by scaling the optical properties of the hydrometeors. Assuming the ice hydrometeors to be horizontally oriented, we increase the extinction at H polarisation and decrease it at V polarisation. The scaling factor is a function of polarisation ratio ($\rho$), which can be defined as the ratio of modified layer optical thickness at H- and V- polarisations. This scheme was first introduced by \citet{barlakas:intro:21} for RTTOV. Here, we extend this scheme in ARTS setup to simulate GMI measurements. We optimize the valid range of $\rho$ by evaluating the measures of fit between the distributions of observed and simulated TBs from dual-polarised channels. Based on these results, a random selection of $\rho$ from a uniform distribution between 1 and 1.4  was judged to be the best performing. We do not make a one-to-one comparison between the simulations and observations, but selecting $\rho$ from a distribution than constant value reduces the disparities between the polarisation differences (PD) observed in the two distributions. In reality, the ice particles have complex habits and varying sizes. Additionally, their scattering properties vary with the atmospheric conditions. Variability in $\rho$ ensures that scattering effects of varying intensity are included. 
 
-Even with the simplified microphysical assumptions, large plate aggregate gave quite agreeable performance with  the measured TBs distributions, especially in the clear-sky regions. Only significant differences belong to the TB depressions, where the database has a high frequency of cases with TB < 200\,\,K. The mismatch arises due to one habit and PSD combination, which constrains the model to simulate the exact distributions. Nevertheless, the overall variability can be captured. The inversions of Cloudsat reflectivities to IWC were roughly of the order of IWC measured by DARDAR. Most differences were seen for in tropics, where our microphysical assumptions underestimates the IWP. This could be due to underestimation of IWC at higher altitudes as described by \citet{ekelund2020using}. The performance depends on the representation of cloud microphysics in radiative transfer simulations.  
-
-
-A bayesian machine learning algorithm is trained on the database to retrieve near-global estimates of IWP. In order to compare the retrieval accuracy with and without particle orientation, the retrieval method is applied to test database, which is part of the database set aside for validation. By assuming effects of oriented particles, the retrieved IWPs  show a good consistency with the reference dataset. When the orientation is neglected, the retrievals see elevated magnitudes. A comparison of the two retrievals shows that largest differences in retrieval accuracy occur for the cases with high polarisation differences. Neglecting orientation degrades the retrieval accuracy by almost 30\% for PD > 10\,\,K, while for PDs of the order of few Kelvins, no significant differences are observed. The lower PDs are as a consequence of random orientation. In a cloud, when the ice hydrometeors change from horizontal to random orientation, the radiation scattering is isotropic in nature, which weakens the PDs. We also examine the differences in the retrieval accuracy if the microwave radiometers are equipped with only single polarisation mode. 
+Even with the simplified microphysical assumptions, large plate aggregate gave quite agreeable performance with the measured TBs distributions, especially in the clear-sky regions. Only significant differences belong to the TB depressions, where the database has a high frequency of cases with TB < 200\,\,K. On the contrary, the performance wit evans snow aggregate was quite reasonale for the intermediate TB range, but it totally failed at simulating the TBs associated with the convection systems. The mismatch arises due to one habit and PSD combination, which constrains the model to simulate the exact distributions. Nevertheless, the overall variability can be improved by assuming a mixture of two or more particle habits and PSDs. Further, the inversions of Cloudsat reflectivities to IWC were roughly of the order of IWC measured by DARDAR. Most differences were seen for in tropics, where our microphysical assumptions underestimates the IWP. This could be due to underestimation of IWC at higher altitudes as described by \citet{ekelund2020using}. The performance depends on the representation of cloud microphysics in radiative transfer simulations.  
 
 
+A bayesian machine learning algorithm is trained on the database to retrieve near-global estimates of IWP. In order to compare the retrieval accuracy with and without particle orientation, the retrieval method is applied to test database, which is part of the database set aside for validation. By assuming effects of oriented particles, the retrieved IWPs  show a good consistency with the reference dataset. When the orientation is neglected, the retrievals see elevated magnitudes. A comparison of the two retrievals shows that largest differences in retrieval accuracy occur for the cases with high polarisation differences. Neglecting orientation degrades the retrieval accuracy by almost 30\% for PD > 10\,\,K, while for PDs of the order of few Kelvins, no significant differences are observed. The lower PDs are as a consequence of random orientated hydrometeors. We also examine the differences in the retrieval accuracy if the microwave radiometers are equipped with only single polarisation mode. 
 
 
-
-
-The a priori distribution of also affects the retrieval errors. Representation of extreme cases with IWPs > 10\,\,kg m$^{-2}$ is quite poor, hence the posterior distribution cannot account for such cases correctly. This can be solved through a database which has equal representation of dynamic range of IWPs, but would require more simulations. 
+The a priori distribution of also affects the retrieval errors. Representation of extreme cases with IWPs > 10\,\,kg m$^{-2}$ is quite poor, hence the posterior distribution cannot account for such cases correctly. This can be solved through a database which has equal representation of dynamic range of IWPs, but it would require more simulations. 
 
 
 
@@ -675,9 +665,31 @@ The a priori distribution of also affects the retrieval errors. Representation o
 \appendix
 %% Appendix A
 
+
+\section{Estimation of $\rho$ for evans snow aggregate and comparison with observations} 
+%
+\label{app:esa}
+
+\begin{figure}[t]
+	\includegraphics[width=6cm]{Figures/PD_water_varying_rho_water_land_esa.png}
+	\caption{  }
+	\label{fig:PD_esa}
+\end{figure}
+
+\begin{figure}[t]
+	\includegraphics[width=10cm]{Figures/TB_esa.pdf}
+	\caption{  }
+	\label{fig:TB_esa}
+\end{figure}
+
+Figure~\ref{fig:PD_esa} shows the simulated PDs as a function of TB at 166V\,GHz for evans snow aggregate overlaid on the observed PDs. It is similar to Fig.~\ref{fig:PD_166}, except both water and land surface types are grouped together. Compared to Fig.~\ref{fig:PD_166}, quite similar behaviour of varying $\rho$ can be observed. However, $\rho = 1.4$ falls slightly short of simulating a fraction of PDs around 17\,K. Additionally, the PDs to the left of 150\,K are also missed by the simulations. Both these effects are likely due to limitation of particle model. While, the highest observed PDs can be replicated by including $\rho = 1.5$, but simulating the PDs for TBs lower than 150\,K would require change in microphysical assumptions. A comparison of divergences (not shown) between simulations and observations for a $\rho\in U[1, 1.4]$ and $\rho\in \mathcal{N}[1.2, 0.12]$ was also made, and again the uniformly distributed $\rho$ emerged as best performing.
+
+Further, the TB distributions for the four channels of GMI is displayed in Fig.~\ref{fig:TB_esa}. For all four frequencies, evans snow aggregate fails in simulating the coldest TBs, but interestingly, the mismatch between simulations and observations in the intermediate zone is smaller than the one observed with large plate aggregate. This is am important result, which reinforces the fact constraining the microphysical assumptions to single habit and PSD, it not enough. In future, better agreements with observations can be achieved by more advanced microphysical schemes.  
+
+
 \section{QRNN configuration and inputs}
 
-In order to implement an optimal QRNN for the current application, several factors are crucial. Firstly, we describe the QRNN architecture that were considered for this application:
+In order to implement an optimal QRNN for the current application, several factors are crucial. The QRNN architecture that was considered for this application is described as follows:
 
 \begin{enumerate}	
 	
@@ -687,15 +699,13 @@ In order to implement an optimal QRNN for the current application, several facto
 	
 	\item \todo {SGD + cosine anealing. Start with lr = 0.01, train 20 epochs,  lower intial lr to 1e-4 and train for another 50 epochs, lr = 1e-5 and train for 100 epochs.}	
 	
-	
 \end{enumerate}
 
 While it is important to set-up an optimal neural network architecture, it is also crucial to find the best combination of input variables. Efficient retrieval performance requires the best combination of the training architecture and input data. The details about the training data are as follows: 
 
-
 \begin{enumerate}
 	
-	\item  Firstly, it is crucial to define the best combination of input variables. The input vector space consists of TBs from the four high frequency channels of GMI ie., 166V\,\,GHz, 166H\,\,GHz, 183$\pm$3\,\,GHz, 183$\pm$7\,\,GHz. We also included 2\,\,m temperature, water vapour path, surface elevation and surface type as additional inputs to identify the environmental conditions. Seven surface types are considered : water, land, snow, seaice, coastlines, snow/land boundary and seaice/water boundary. 
+	\item The input vector space consists of TBs from the four high frequency channels of GMI ie., 166V\,\,GHz, 166H\,\,GHz, 183$\pm$3\,\,GHz, 183$\pm$7\,\,GHz. We also included 2\,\,m temperature, water vapour path, surface elevation and surface type as additional inputs to identify the environmental conditions. Seven surface types are considered : water, land, snow, seaice, coastlines, snow/land boundary and seaice/water boundary. We bundled snow/water boundary under snow, as GMI did not classify it separately. 
 	
 	\item The IWP has a very high dynamic range. A large majority of cases have very small or zero IWPs, but values as large at 25\,\,kg m$^{-2}$ also exist. Thus to facilitate the optimal use of data in the neural network, a loglinear transformation was applied. That is, all IWPs greater than 1.0\,\,kg m$^{-2}$  were transformed to natural logarithmic space, while the other IWPs remained unchanged. Additionally, all cases with IWP less 10$^{-4}$ were replaced by a small random number from the interval (10$^{-6}$, 10$^{-4}$).	
 	
@@ -704,19 +714,6 @@ While it is important to set-up an optimal neural network architecture, it is al
 	\item A small randomisation of the surface types was also included to take include misclassification in the database. Comparisons of the simulations and observations showed that GPROF surface classification could be wrong, particularly in regions with mixed surface types. Thus to enhance the robustness of the machine learning model to these perturbations, the surface type of 1\% of the data was randomly shuffled at each epoch. 	
 	
 \end{enumerate}
-
-
-\subsection{Evans Snow aggregate}     %% Appendix A1, A2, etc.
-(Figure~\ref{fig:divergence_esa}). The distribution of observed and simulated distributions are shown in Fig~\ref{}. In all experiments, as seen for large plate aggregate, the clear-sky TBs match quite well with the observations. On the other hand, while varying level of agreement is expected for cloudy cases, all experiments fall short of simulating the coldest TBs below 150\,K. The missing simulated Tbs lead to heavy penalties 
-with respect to the observations, and is evident as a sharp spike in the divergences around 150\,K. When $\rho = 1.2$ and 1.3, the simulations can reproduce the PDs associated  TBs 
-
-
-When $\rho$ = 1, the TBs between 150 and 200\,K cannot cover the arch region hence the divergence is higher.  the  $\rho$ from a truncated normal distribution or a uniform distribution gives comparable results. 
-
-Further, with evans snow aggregate, the coldest TBs simulated are around 140\,\,K, while with large plate aggregate TBs as low as 100\,\,K are also simulated. 
-
-he divergence estimates between the two distributions are quite similar to the ones obtained with large plate aggregate.
-
 
 
 \noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
