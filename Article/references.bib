@@ -9,14 +9,27 @@
 @string{I3ETGRS = {IEEE T. Geosci. Remote}}
 @string{I3EGRS  = {IEEE Geosci. Remote Sens.}}
 @string{JAOT    = {J. Atmos. Oceanic Technol.}}
-@string{JAS    =  {J. Atmos. Sci.}}
+@string{JAS     =  {J. Atmos. Sci.}}
 @string{JCAM    = {J. Clim. Appl. Mete.}}
 @string{JGR     = {J. Geophys. Res.}}
+@string{JGRA    = {J. Geophys. Res. Atmos.}}
+@string{JHM     = {J. Hydrometeorol.}}
 @string{JQSRT   = {J. Quant. Spectrosc. Radiat. Transfer}}
 @string{QJRMS   = {Q. J. R. Meteorol. Soc.}}
 @string{RS      = {Radio Sci.}}
 @string{T       = {Tellus}}
 @string{JAMC    = {J. Appl. Meteorol. Clim.}}
+
+
+@ARTICLE{adams:thesc:12,
+author={Adams, I. S. and Bettenhausen, M. H.},
+journal=RS,
+title={The scattering properties of horizontally aligned snow crystals and crystal approximations at millimeter wavelengths},   
+year={2012},  
+volume={47},  
+number={05},  
+pages={1-15},  
+doi={10.1029/2012RS005015}}
 
 @article{aires2011tool,
 	title={{A Tool to Estimate Land-Surface Emissivities at Microwave frequencies (TELSEM) for use in numerical weather prediction}},
@@ -44,6 +57,27 @@
 	DOI = {10.5194/amt-14-3427-2021}
 }
 
+@ARTICLE{battaglia:rain:09,  
+author={Battaglia, Alessandro and Saavedra, Pablo and Simmer, Clemens and Rose, Thomas},  
+journal={IEEE Geoscience and Remote Sensing Letters},   
+title={Rain Observations by a Multifrequency Dual-Polarized Radiometer},   
+year={2009},  
+volume={6},  
+number={2},  
+pages={354-358},  
+doi={10.1109/LGRS.2009.2013484}}
+
+@article{balaji2010retrieval,
+	title={Retrieval of hydrometeors from microwave radiances with a polarized radiative transfer model},
+	author={Balaji, C and Deiveegan, M and Venkateshan, SP and Gairola, RM and Sarkar, A and Agarwal, VK},
+	journal={Journal of earth system science},
+	volume={119},
+	number={1},
+	pages={97--115},
+	year={2010},
+	publisher={Springer}
+}
+
 @article{boukabara2011mirs,
 	title={MiRS: An all-weather 1DVAR satellite data assimilation and retrieval system},
 	author={Boukabara, Sid-Ahmed and Garrett, Kevin and Chen, Wanchun and Iturbide-Sanchez, Flavio and Grassotti, Christopher and Kongoli, Cezar and Chen, Ruiyue and Liu, Quanhua and Yan, Banghua and Weng, Fuzhong and others},
@@ -58,7 +92,7 @@
 @Article{brath:micro:20,
 	AUTHOR = {Brath, M. and Ekelund, R. and Eriksson, P. and Lemke, O. and Buehler, S. A.},
 	TITLE = {Microwave and submillimeter wave scattering of oriented ice particles},
-	JOURNAL = {Atmospheric Measurement Techniques},
+	JOURNAL = AMT,
 	VOLUME = {13},
 	YEAR = {2020},
 	NUMBER = {5},
@@ -78,6 +112,16 @@
 	DOI = {10.5194/amt-11-611-2018}
 }
 
+@article{camplani2021passive,
+	title={The Passive microwave Empirical cold Surface Classification Algorithm (PESCA): Application to GMI and ATMS},
+	author={Camplani, Andrea and Casella, Daniele and San{\`o}, Paolo and Panegrossi, Giulia},
+	journal=JHM,
+	volume={22},
+	number={7},
+	pages={1727--1744},
+	year={2021}
+}
+
 @article{coy:sensi:20,
 	author = {Coy, James J. and Bell, Adam and Yang, Ping and Wu, Dong L.},
 	title = {Sensitivity Analyses for the Retrievals of Ice Cloud Properties From Radiometric and Polarimetric Measurements in Sub-mm/mm and Infrared Bands},
@@ -87,6 +131,59 @@
 	pages = {e2019JD031422},
 	doi = {https://doi.org/10.1029/2019JD031422},
 	year = {2020}
+}
+
+@article{czekala:effect:98,
+	author = {Czekala, Harald},
+	title = {Effects of ice particle shape and orientation on polarized microwave radiation for off-nadir problems},
+	journal = GRL,
+	volume = {25},
+	number = {10},
+	pages = {1669-1672},
+	doi = {https://doi.org/10.1029/98GL51132},
+	url = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/98GL51132},
+	year = {1998}
+}
+
+
+@article{czekala:inter:01,
+	title={Interpretation of polarization features in ground-based microwave observations as caused by horizontally aligned oblate raindrops},
+	author={Czekala, Harald and Crewell, Susanne and Simmer, Clemens and Thiele, Ariane and Hornbostel, Achim and Schroth, Arno},
+	journal=JAM,
+	volume={40},
+	number={11},
+	pages={1918--1932},
+	year={2001}
+}
+
+
+@article{czekala:discr:01,
+	title={Discrimination of cloud and rain liquid water path by groundbased polarized microwave radiometry},
+	author={Czekala, Harald and Crewell, Susanne and Simmer, Clemens and Thiele, Ariane},
+	journal=GRL,
+	volume={28},
+	number={2},
+	pages={267--270},
+	year={2001},
+	publisher={Wiley Online Library}
+}
+
+@article{defer:first:14,
+	title={First observations of polarized scattering over ice clouds at close-to-millimeter wavelengths (157 GHz) with MADRAS on board the Megha-Tropiques mission},
+	author={Defer, Eric and Galligani, Victoria S and Prigent, Catherine and Jimenez, Carlos},
+	journal=JGRA,
+	volume={119},
+	number={21},
+	pages={12--301},
+	year={2014},
+	publisher={Wiley Online Library}
+}
+
+@article{draine:user:13,
+	title={User guide for the discrete dipole approximation code DDSCAT 7.3},
+	author={Draine, Bruce T and Flatau, Piotr J},
+	journal={arXiv preprint arXiv:1305.6497},
+	year={2013}
 }
 
 @Article{duncan:anupd:18,
@@ -141,6 +238,21 @@
 	note      = {Last accessed on 10 August 2021},
 }
 
+@techreport{gpm:16,
+	author    = {{Precipitation Processing System}},
+	title     = {NASA Global Precipitation Measurement (GPM)
+	Microwave Imager (GMI) Level 1B (L1B)
+	Algorithm Theoretical Basis Document (ATBD)
+	Version 3.0},
+	year      = {2016},
+	doi       = {},
+	institution = {NATIONAL AERONAUTICS AND SPACE ADMINISTRATION
+	GODDARD SPACE FLIGHT CENTER
+	Code 610.2/PPS
+	Greenbelt, Maryland 20771},
+	note      = {Last accessed on 18 October 2021},
+}
+
 @article{eriksson:arts2:11,
   author    = {P. Eriksson and S. A. Buehler and C. P. Davis and C. Emde and
                O. Lemke},
@@ -191,7 +303,39 @@
 	doi = "10.1175/JAM2250.1",
 	pages=      "839 - 859",}
 
-@article {field:snows:07,
+@article{evans:micro:95,
+	title={Microwave radiative transfer through clouds composed of realistically shaped ice crystals. Part II. Remote sensing of ice clouds},
+	author={Evans, K Franklin and Stephens, Graeme L},
+	journal= JAS,
+	volume={52},
+	number={11},
+	pages={2058--2072},
+	year={1995}
+}
+
+@article{evans:micro1:95,
+	title={Microwave radiative transfer through clouds composed of realistically shaped ice crystals. Part I. Single scattering properties},
+	author={Evans, K Franklin and Stephens, Graeme L},
+	journal=JAS,
+	volume={52},
+	number={11},
+	pages={2041--2057},
+	year={1995}
+}
+
+
+@article{fox2020evaluation,
+	title={An Evaluation of Radiative Transfer Simulations of Cloudy Scenes from a Numerical Weather Prediction Model at Sub-Millimetre Frequencies Using Airborne Observations},
+	author={Fox, Stuart},
+	journal=RS,
+	volume={12},
+	number={17},
+	pages={2758},
+	year={2020},
+	publisher={Multidisciplinary Digital Publishing Institute}
+}
+
+@article{field:snows:07,
 	author = "Paul R. Field and Andrew J. Heymsfield and Aaron Bansemer",
 	title = "Snow Size Distribution Parameterization for Midlatitude and Tropical Ice Clouds",
 	journal = JAS,
@@ -200,6 +344,14 @@
 	number = "12",
 	doi = "10.1175/2007JAS2344.1",
 	pages=      "4346 - 4365",
+}
+
+@article{galligani:param:21,
+	title={A Parameterization of the Cloud Scattering Polarization Signal Derived From GPM Observations for Microwave Fast Radative Transfer Models},
+	author={Galligani, Victoria Sol and Wang, Die and Corrales, Paola Bel{\'e}n and Prigent, Catherine},
+	journal=I3ETGRS,
+	year={2021},
+	publisher={IEEE}
 }
 
 @Article{gong:cloud:14,
@@ -225,9 +377,8 @@
 	DOI = {10.5194/acp-17-2741-2017}
 }
 
-@Inbook{Joyce:kl:11,
+@book{Joyce:kl:11,
 	author="Joyce, James M.",
-	editor="Lovric, Miodrag",
 	title="Kullback-Leibler Divergence",
 	bookTitle="International Encyclopedia of Statistical Science",
 	year="2011",
@@ -290,6 +441,15 @@
 	pages = {1504-1523},
 	doi = {https://doi.org/10.1002/2013JD020759},
 	year = {2014}
+}
+
+
+@book{janssen:atmos:94,
+	title     = {Atmospheric remote sensing by microwave radiometry},
+	author    = {Janssen, Michael A},
+	year      = {1994},
+	publisher = {John Wiley \& Sons },
+	address   = {Hoboken, New Jersey}
 }
 
 @article{jimenez:2007:perfo,
@@ -356,11 +516,43 @@
 	DOI = {10.5194/acp-3-39-2003}
 }
 
+@article{munchak2020active,
+	title={An Active--Passive Microwave Land Surface Database From GPM},
+	author={Munchak, S Joseph and Ringerud, Sarah and Brucker, Ludovic and You, Yalei and de Gelis, Iris and Prigent, Catherine},
+	journal=I3ETGRS,
+	volume={58},
+	number={9},
+	pages={6224--6242},
+	year={2020},
+	publisher={IEEE}
+}
+
 @inproceedings{paszke2017automatic,
 	title={Automatic differentiation in PyTorch},
 	author={Paszke, Adam and Gross, Sam and Chintala, Soumith and Chanan, Gregory and Yang, Edward and DeVito, Zachary and Lin, Zeming and Desmaison, Alban and Antiga, Luca and Lerer, Adam},
 	booktitle={NIPS-W},
 	year={2017}
+}
+
+
+@article{prigent:micro:01,
+	title={Microwave polarized scattering signatures in clouds: SSM/I observations interpreted with radiative transfer simulations},
+	author={Prigent, C and Pardo, JR and Mishchenko, MI and Rossow, WB},
+	journal=JGR,
+	volume={106},
+	number={28},
+	pages={243--28},
+	year={2001}
+}
+
+@article{prigent:relat:05,
+	title={Relations of polarized scattering signatures observed by the TRMM Microwave Instrument with electrical processes in cloud systems},
+	author={Prigent, Catherine and Defer, Eric and Pardo, Juan R and Pearl, Cindy and Rossow, William B and Pinty, Jean-Pierre},
+	journal=GRL,
+	volume={32},
+	number={4},
+	year={2005},
+	publisher={Wiley Online Library}
 }
 
 @article{prigent2017sea,
@@ -387,16 +579,38 @@
   PAGES = {4627--4643},
   DOI = {10.5194/amt-11-4627-2018},
 }
+@software{quantnn:21,
+	author = {Pfreundschuh, S},
+	title = {Quantile regression neural networks on top of Keras and Pytorch.},
+	url = {https://github.com/simonpf/quantnn},
+	version = {v0.0.1dev},
+	year = {2021},
+	date = {2021-02-02},
+	note = {Last accessed : 21 October 2021}
+}
+
+
 @article{protat:theev:10,
-	author = "A.  Protat and J.  Delanoe\'' and E. J.  O?Connor and T. S.  L?Ecuyer",
+	author = "A.  Protat and J.  Delano{\"e} and E. J.  O'Connor and T. S.  L'Ecuyer ",
 	title = "The Evaluation of CloudSat and CALIPSO Ice Microphysical Products Using Ground-Based Cloud Radar and Lidar Observations",
 	journal = JAOT,
 	year = "2010",
 	volume = "27",
 	number = "5",
 	doi = "10.1175/2009JTECHA1397.1",
-	pages=      "793 - 810",
+	pages= "793 - 810",
 }
+
+@incollection{pwr:93,
+	EDITOR    = {M.~A. Janssen},
+	AUTHOR    = {P.~W. Rosenkranz},
+	title     = {Absorption of microwaves by atmospheric gases},
+	BOOKTITLE = {Atmospheric remote sensing by microwave radiometry},
+	PAGES     = {37-90},
+	YEAR      = {1993},
+	PUBLISHER = {John Wiley \& Sons, Inc.},
+}
+
 
 @article{reinhardt:impac:04,
 	author = {Reinhardt, T. and Wacker, U.},
@@ -432,7 +646,7 @@
 }
 
 @article {stephens:cloud:18,
-	author = "Graeme Stephens and David Winker and Jacques Pelon and Charles Trepte and Deborah Vane and Cheryl Yuhas and Tristan L?Ecuyer and Matthew Lebsock",
+	author = "Graeme Stephens and David Winker and Jacques Pelon and Charles Trepte and Deborah Vane and Cheryl Yuhas and Tristan L'Ecuyer and Matthew Lebsock",
 	title = "CloudSat and CALIPSO within the A-Train: Ten Years of Actively Observing the Earth System",
 	journal = BAMS,
 	year = "2018",
@@ -440,6 +654,38 @@
 	number = "3",
 	doi = "10.1175/BAMS-D-16-0324.1",
 	pages=      "569 - 581",
+}
+
+@article {spencer:heavy:83,
+	author = "R. W.  Spencer and W. S.  Olson and Wu  Rongzhang and D. W.  Martin and J. A.  Weinman and D. A.  Santek",
+	title = "Heavy Thunderstorms Observed Over Land by the Nimbus 7 Scanning Multichannel Microwave Radiometer",
+	journal = JAMC,
+	year = "1983",
+	publisher = "American Meteorological Society",
+	address = "Boston MA, USA",
+	volume = "22",
+	number = "6",
+	doi = "10.1175/1520-0450(1983)022<1041:HTOOLB>2.0.CO;2",
+	pages=      "1041 - 1046",
+}
+@article{troitsky:polar:03,
+	title={Polarization of thermal microwave atmospheric radiation due to scattering by ice particles in clouds},
+	author={Troitsky, AV and Osharin, AM and Korolev, AV and Strapp, JW},
+	journal=JAS,
+	volume={60},
+	number={13},
+	pages={1608--1620},
+	year={2003}
+}
+
+@article{turner2019amsutran,
+	title={{AMSUTRAN: A microwave transmittance code for satellite remote sensing}},
+	author={Turner, Emma and Rayer, Peter and Saunders, Roger},
+	journal=JQSRT,
+	volume={227},
+	pages={117--129},
+	year={2019},
+	publisher={Elsevier}
 }
 
 @software{typhonv08,
@@ -460,6 +706,17 @@
 	doi          = {10.5281/zenodo.3626449},
 	url          = {https://doi.org/10.5281/zenodo.3626449}
 }
+
+@article{vivekanandan:ice:91,
+	title={Ice water path estimation and characterization using passive microwave radiometry},
+	author={Vivekanandan, J and Turk, J and Bringi, VN},
+	journal=JAMC,
+	volume={30},
+	number={10},
+	pages={1407--1421},
+	year={1991}
+}
+
 @article {wang:surfa:17,
 	author = "D. Wang and C. Prigent and L. Kilic and S. Fox and C. Harlow and C. Jimenez and F. Aires and C. Grassotti and F. Karbou",
 	title = "Surface Emissivity at Microwaves to Millimeter Waves over Polar Regions: Parameterization and Evaluation with Aircraft Experiments",
@@ -485,11 +742,23 @@
 @article{xie:polar:11,
 	title={Polarization difference due to nonrandomly oriented ice particles at millimeter/submillimeter waveband},
 	author={Xinxin Xie and J. Miao},
-	journal={Journal of Quantitative Spectroscopy \& Radiative Transfer},
+	journal=JQSRT,
 	year={2011},
 	volume={112},
 	pages={1090-1098}
 }
+
+@article{xie:snow:12,
+	author = {Xie, Xinxin and Löhnert, Ulrich and Kneifel, Stefan and Crewell, Susanne},
+	title = {Snow particle orientation observed by ground-based microwave radiometry},
+	journal = JGRA,
+	volume = {117},
+	number = {D2},
+	pages = {},
+	doi = {https://doi.org/10.1029/2011JD016369},
+	year = {2012}
+}
+
 
 
 @article {Zhao:retri:02,
