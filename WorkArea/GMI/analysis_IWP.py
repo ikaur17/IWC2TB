@@ -174,7 +174,7 @@ with open("gridded_dardar_2009.pickle", "wb") as f:
 
 # # giwp[giwp > giwp_mean]  = np.nan
 # # giwp_mean[giwp > giwp_mean]  = np.nan
-inputfile = "jan2017_IWP_lpa1.nc"
+inputfile = "jan2019_IWP_lpa1.nc"
     
 dataset1 = xarray.open_dataset(inputfile)
 
@@ -193,7 +193,7 @@ dataset1 = xarray.open_dataset(inputfile)
 
 #%%
 
-inputfile = "jan2017_IWP_lpa1.nc"
+inputfile = "jan2020_IWP_lpa1.nc"
     
 dataset = xarray.open_dataset(inputfile)
 
@@ -339,7 +339,7 @@ ziwp, ziwpc = zonal_mean(glat[nanmask], giwp[nanmask], latbins)
 
 ziwp_si, ziwp_sic = zonal_mean(slat, siwp, latbins)
 ziwp_d, ziwp_dc = zonal_mean(dlat,  diwp, latbins)
-ziwp_d1, ziwp_dc1 = zonal_mean(dlat1,  diwp1, latbins)
+#ziwp_d1, ziwp_dc1 = zonal_mean(dlat1,  diwp1, latbins)
 
 
 fig, ax = plt.subplots(1, 1, figsize = [12, 12])
@@ -354,7 +354,7 @@ ax.plot(ziwp0[:-1]/ziwp0c[:-1], latbins, 'b.-', label = "GPROF (26.4 kg m$^{-2}$
 ax.plot( (0.001 * ziwp_si[:-1]/ziwp_sic[:-1]), latbins, 'b--', label = "SpareIce (92.7 kg m$^{-2}$)")
 ax.plot(ziwp_d[:-1]/ziwp_dc[:-1],latbins, 'b:', label = "DARDAR-17 (123.4 kg m$^{-2}$)") 
  
-ax.plot(ziwp_d1[:-1]/ziwp_dc1[:-1],latbins, 'k', label = "DARDAR-09 (131.5 kg m$^{-2}$)") 
+#ax.plot(ziwp_d1[:-1]/ziwp_dc1[:-1],latbins, 'k', label = "DARDAR-09 (131.5 kg m$^{-2}$)") 
 
 
 
@@ -459,8 +459,13 @@ fig.colorbar(cs, label=r"IWP [kg m$^{-2}$]", ax = axes, shrink = 0.8)
 
 ax[3].set_title("SpareICE")
 ax[2].set_title("DARDAR")
-ax[0].set_title("GMI QRNN")
+ax[0].set_title("Q IWP")
 ax[1].set_title("GPROF")
+
+ax[0].text(0.5, 66, "a)")
+ax[1].text(0.5, 66, "b)")
+ax[2].text(0.5, 66, "c)")
+ax[3].text(0.5, 66, "d)")
 fig.savefig("Figures/IWP_spatial_distribution.pdf", bbox_inches = "tight")
 
 

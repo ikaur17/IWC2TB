@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 24 20:25:25 2021
@@ -124,8 +124,8 @@ ax.plot(pdc, tro4, 'b--')
 ax.legend()
 
 ax.set_xlabel("Polarisation difference [K]")
-ax.set_ylabel(r"IWP [kg m$^{-2}$]")
-ax.set_yscale("log")
+ax.set_ylabel(r"Mean IWP [kg m$^{-2}$]")
+#ax.set_yscale("log")
 
 ax.grid("on", alpha = 0.3)
 fig.savefig("IWP_PD_GMI.pdf", bbox_inches = "tight")

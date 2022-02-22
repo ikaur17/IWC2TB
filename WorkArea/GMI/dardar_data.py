@@ -14,8 +14,8 @@ import pickle
 
 
 #----------------------------------------------
-outfile = "dardar_jan2009"
-year = "2009"
+outfile = "dardar_jan2019"
+year = "2019"
 month = "01"
 #----------------------------------------------
 
@@ -25,7 +25,10 @@ dfiles = []
 
 
 dpath  = os.path.join("/home/inderpreet/Dendrite/SatData/DARDAR/", year, month)
-dfiles += glob.glob(os.path.join(dpath , "*/*.hdf"))  
+#dfiles += glob.glob(os.path.join(dpath , "*/*.hdf"))  
+
+dfiles += glob.glob(os.path.join(dpath , "*/*.nc"))  
+
 
 #dpath  = "/home/inderpreet/Dendrite/SatData/DARDAR/2009/02/"
 #dfiles += glob.glob(os.path.join(dpath + "*/*.hdf"))  

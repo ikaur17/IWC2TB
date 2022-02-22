@@ -35,7 +35,7 @@ def plot_pdf_gmi(Ta, Tb, bins= None, figname = "distribution_gmi.pdf"):
     if bins is None:
         bins = np.arange(100, 310, 2)
         
-    fig, axs = plt.subplots(2,1, figsize = [20, 20])
+    fig, axs = plt.subplots(1,2, figsize = [16, 8])
     fig.tight_layout(pad=3.0)
     
     for i, ax in enumerate(fig.axes):
@@ -43,14 +43,14 @@ def plot_pdf_gmi(Ta, Tb, bins= None, figname = "distribution_gmi.pdf"):
         if i == 1:
             i = 2
     
-        hist_a = np.histogram(Ta[::3, i],  bins, density = True)      
-        hist_b = np.histogram(Tb[::10, i],  bins, density = True)  
+        hist_a = np.histogram(Ta[:, i],  bins, density = True)      
+        hist_b = np.histogram(Tb[:, i],  bins, density = True)  
         
         ax.plot(bins[:-1], hist_b[0],'b', label =  freq[i]+ ' obs', linewidth = 2, alpha = 0.5)       
         ax.plot(bins[:-1], hist_a[0],'b--', label =  freq[i] + ' sim', linewidth = 2, alpha = 0.5)
         
-        hist_a = np.histogram(Ta[::3, i+1],  bins, density = True)      
-        hist_b = np.histogram(Tb[::10, i+1],  bins, density = True)  
+        hist_a = np.histogram(Ta[:, i+1],  bins, density = True)      
+        hist_b = np.histogram(Tb[:, i+1],  bins, density = True)  
         
         ax.plot(bins[:-1], hist_b[0], 'r', label =  freq[i+1] + ' obs', linewidth = 2, alpha = 0.5)       
         ax.plot(bins[:-1], hist_a[0], 'r--', label =  freq[i+1] +  ' sim', linewidth = 2, alpha = 0.5)
@@ -61,4 +61,5 @@ def plot_pdf_gmi(Ta, Tb, bins= None, figname = "distribution_gmi.pdf"):
         ax.set_ylabel('PDF [#/K]')
         ax.set_xlabel('Ta [K]')
         ax.legend()
+        ax.grid("on", alpha = 0.4)
     fig.savefig("Figures/" + figname, bbox_inches = "tight")

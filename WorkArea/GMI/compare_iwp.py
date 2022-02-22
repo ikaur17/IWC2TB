@@ -19,7 +19,7 @@ from era2dardar.utils.alt2pressure import alt2pres, pres2alt
 from iwc2tb.common.plot_locations_map import plot_locations_map
 from era2dardar.utils.read_from_zip import read_from_zip
 import shutil
-plt.rcParams.update({'font.size': 20})
+plt.rcParams.update({'font.size': 18})
 from scipy import interpolate
 
 #%%
@@ -152,8 +152,10 @@ if __name__ == "__main__":
     #matfiles1 = glob.glob(os.path.join(inpath1, "2010_0*.mat")) 
     matfiles = glob.glob(os.path.join(inpath2, "2009_00*.mat")) 
     matfiles1 = glob.glob(os.path.join(inpath2, "2009_01*.mat")) 
-    matfiles2 = glob.glob(os.path.join(inpath2, "2009_02*.mat")) 
-    matfiles  = matfiles + matfiles1 + matfiles2
+    matfiles2 = glob.glob(os.path.join(inpath2, "2009_02*.mat"))
+    matfiles3 = glob.glob(os.path.join(inpath2, "2009_03*.mat"))
+    
+    matfiles  = matfiles + matfiles1 + matfiles2 + matfiles3
 # #%% find files with high IWC
     
 #     #Himalayas
@@ -190,7 +192,7 @@ if __name__ == "__main__":
 #             #    plot_locations_map(gmi.lat, gmi.lon, gmi.iwp)
         
 
-    matfiles = matfiles[:]
+    matfiles = matfiles[:100]
 
 #%%    
     gmi = GMI(matfiles)
@@ -221,41 +223,59 @@ if __name__ == "__main__":
     
 #%%    
     fig, ax = plt.subplots(1, 1, figsize = [8, 8])
-    ax.plot(iwp_mean_gmi[:], latbins, 'b--', label = "LPA + f07t")
+    ax.plot(iwp_mean_gmi[:], latbins, 'b--', label = "LPA + F07T")
     ax.plot(iwp_mean_dardar[:], latbins, 'b', label = "DARDAR")
     
     
     ax.set_xlabel(r"IWP [kg m$^{-2}$]")
-    ax.set_ylabel(r"Latitude [\circ]") 
+    ax.set_ylabel(r"Latitude [$\circ$]") 
     ax.grid("on", alpha = 0.3)    
     ax.legend()
     fig.savefig("Figures/IWP_GMI_dardar.png", bbox_inches = "tight")    
     
 #%% PDF of IWP
     
+    fig, ax = plt.subplots(1, 2, figsize = [16, 8])
+    ax = ax.ravel()
+    ax[0].plot(iwp_mean_dardar[:], latbins, c = "tab:blue", label = "DARDAR")
+    ax[0].plot(iwp_mean_gmi[:], latbins, 'r', c = "tab:red", label = "LPA + F07T")
+
+    
+    
+    ax[0].set_xlabel(r"IWP [kg m$^{-2}$]")
+    ax[0].set_ylabel(r"Latitude [$\circ$]") 
+    ax[0].grid("on", alpha = 0.3)    
+    ax[0].legend()
+    #fig.savefig("Figures/IWP_GMI_dardar.png", bbox_inches = "tight")   
+    
+    
+    
+    
 
     bins = np.array([0.0,.0001,.00025,.0005,0.001,.0025,.005,.01,.025,.05,.1,.25,.5,1,2, 5, 10, 15, 20, 25])
     
     #bins = np.arange(0, 200, 0.0001)
-    ghist, _ = np.histogram(giwp[gmask], bins, density = True )
-    dhist, _ = np.histogram(diwp[dmask], bins, density = True)
+    ghist, _ = np.histogram(giwp[gmask], bins,  density = True )
+    dhist, _ = np.histogram(diwp[dmask], bins,  density = True)
     
     
     
     bin_center = 0.5 * (bins[1:] + bins[:-1])
-    fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+
+    ax[1].plot(bin_center, dhist, 'o-', color = "tab:blue", label = "DARDAR" )
+    ax[1].plot(bin_center, ghist, 'o-', color = "tab:red", label = "LPA + f07t" )
     
-    #ax.plot(bin_center, shist, 'o-', label = "SI" )
-    ax.plot(bin_center, dhist, 'o-', label = "DARDAR" )
-    ax.plot(bin_center, ghist, 'o-',label = "LPA + f07t" )
-    
-    ax.set_xlabel(r"IWP [kg m$^{-2}$]")
-    ax.set_ylabel("PDF")
-    ax.legend()
-    ax.set_yscale("log")
-    ax.set_xscale("log")
-    ax.grid("on", alpha = 0.3)
-    fig.savefig("Figures/PDF_IWP.png", bbox_inches = "tight")
+    ax[1].set_xlabel(r"IWP [kg m$^{-2}$]")
+    ax[1].set_ylabel("PDF")
+    #ax.legend()
+    ax[1].set_yscale("log")
+    ax[1].set_xscale("log")
+    ax[1].grid("on", alpha = 0.3)
+    ax[0].set_xlim([0, 0.35 ])
+    ax[0].text(0.005, 73, "a)")
+    ax[1].text(4.08e-5, 21990, "b)")
+
+    fig.savefig("Figures/PDF_IWP_DARDAR.pdf", bbox_inches = "tight")
    
     
 #%% pratio PDF

@@ -142,7 +142,7 @@ ax[2].set_xlabel("tb_tro - tb_aro")
 ax[2].set_ylabel("Counts")
 ax[3].set_xlabel("tb_tro - tb_aro") 
 ax[3].legend(["water","land", "snow", "sea-ice", "coast"],bbox_to_anchor=(0.8, 1))
-fig.savefig("hist_surfacetype_tro_aro.png", bbox_inches = "tight")
+fig.savefig("hist_surfacetype_tro_aro.pdf", bbox_inches = "tight")
 #-------------------------------------------------
 #%%
 prbins  = np.arange(1.0, 1.41, 0.05)
@@ -182,7 +182,7 @@ ax[2].set_xlabel("tb_tro - tb_aro [K]")
 ax[2].set_ylabel("Counts")
 ax[3].set_xlabel("tb_tro - tb_aro [K]") 
 ax[3].legend(prbins)  
-fig.savefig("hist_pratio_aro_water_land.png", bbox_inches = "tight")
+fig.savefig("hist_pratio_aro_water_land.pdf", bbox_inches = "tight")
 #%%
 
 titles = ["166V", "166H", r"183.31$\pm$3", r"183.31$\pm$7"]
@@ -199,23 +199,31 @@ for i in [0, 1, 2]:
 fig, ax = plt.subplots(1, 2, figsize = [14, 6])
 ax = ax.ravel()
 
-ax[0].plot( titles, mean[0, :], 'bD', label = "All" )
-ax[0].plot( titles, mean[1, :], 'bo', label = "Water")
-ax[0].plot( titles, mean[2, :], 'bx', label = "Land" )
-ax[0].plot( titles, mean[3, :], 'bs', label = "Snow")
+ax[0].plot( titles, mean[0, :], 'bD',fillstyle= 'none', label = "All" )
+ax[0].plot( titles, mean[1, :], 'bo',fillstyle= 'none', label = "Water")
+ax[0].plot( titles, mean[2, :], 'bx',fillstyle= 'none', label = "Land" )
+ax[0].plot( titles, mean[3, :], 'bs',fillstyle= 'none', label = "Snow")
 ax[0].grid('on', alpha = 0.3)
 ax[0].set_ylabel("Mean [K]") 
 
-ax[1].plot( titles, std[0, :], 'bD', label = "All" )
-ax[1].plot( titles, std[1, :], 'bo', label = "Water")
-ax[1].plot( titles, std[2, :], 'bx', label = "Land" )
-ax[1].plot( titles, std[3, :], 'bs', label = "Snow")
+ax[1].plot( titles, std[0, :], 'bD', fillstyle= 'none', label = "All" )
+ax[1].plot( titles, std[1, :], 'bo', fillstyle= 'none',label = "Water")
+ax[1].plot( titles, std[2, :], 'bx', fillstyle= 'none',label = "Land" )
+ax[1].plot( titles, std[3, :], 'bs', fillstyle= 'none',label = "Snow")
 ax[1].legend()
 ax[1].grid('on', alpha = 0.3)
 ax[1].set_ylabel("Standard deviation [K]") 
-fig.savefig("std_mean.png", bbox_inches = "tight")       
+fig.savefig("std_mean.pdf", bbox_inches = "tight")       
     
 #%%
+
+fig, ax = plt.subplots(1, 1, figsize = [8, 8])
+
+xx = np.arange(1, 5, 1)
+ax.errorbar(xx-0.2, mean[0, :], std[0, :], linestyle='None', marker='^', label = "All")
+ax.errorbar(xx-0.1, mean[1, :], std[1, :], linestyle='None', marker='^', label = "Water")
+ax.errorbar(xx+0.0, mean[2, :], std[2, :], linestyle='None', marker='^', label = "Land")
+ax.errorbar(xx+0.1, mean[3, :], std[3, :], linestyle='None', marker='^', label = "Snow")
 
 
 

@@ -15,7 +15,7 @@ def filter_gmi_sat(lat, lon, tb, stype,  latlims = None, lsm = None):
         lat1  = latlims[0]
         lat2  = latlims[1]
         mask1 = (np.abs(lat) >= lat1) & (np.abs(lat) <= lat2)
-        
+        #mask1 = (lat >= lat1) & (lat <= lat2)        
     mask2 = np.ones(lat.shape, dtype = bool)  
     
     if lsm is not None:

@@ -8,6 +8,8 @@ Created on Tue Apr 27 14:15:45 2021
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker, cm
+from scipy.ndimage.filters import gaussian_filter
+from matplotlib.colors import LogNorm
 
 def plot_hist(ta, tb, figname = "contour2d.png", ax = None):
 
@@ -18,9 +20,9 @@ def plot_hist(ta, tb, figname = "contour2d.png", ax = None):
     ydat = ta[:, 0] -  ta[:, 1]
     
 #    xyrange = [[xdat.min()-5, xdat.max()+5],[ydat.min()-5, ydat.max()+ 5]] # data range
-    xyrange = [[100, 300], [-5, 60]] # data range
+    xyrange = [[100, 300], [-5, 55]] # data range
   
-    bins = [100, 65] # number of bins
+    bins = [100, 60] # number of bins
     thresh = 1/xdat.shape[0] * 2  #density threshold
     
     
@@ -37,12 +39,26 @@ def plot_hist(ta, tb, figname = "contour2d.png", ax = None):
     xdat1 = xdat[ind][hhsub < thresh] # low density points
     ydat1 = ydat[ind][hhsub < thresh]
     #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
+    sigma = 0.1
+    hh = gaussian_filter(hh, sigma)
+    print (hh.min(), hh.max())
     
-    cs = ax.contour(np.flipud(hh.T),colors= "tab:blue",
+    normi= LogNorm(vmin=1e-3, vmax=0.1)
+    
+    cs = ax.contour(np.flipud(hh.T), colors = "tab:blue",
                     extent=np.array(xyrange).flatten(), 
-                locator= ticker.LogLocator(), origin='upper')
+                #locator= ticker.LogLocator(), 
+                #levels =  [0.5e-5, 1e-5, 1e-4, 0.5e-3, 1e-3, 0.5e-2, 1e-2, 0.05, 0.1],
+                levels = 5,
+                norm = normi,
+                linewidth = 2.5,
+                origin='upper')
+    
+    fmt = ticker.LogFormatterMathtext()
+    fmt.create_dummy_axis()
+    ax.clabel(cs, inline=1, inline_spacing = 7,fontsize=18, fmt = fmt)
 #    plt.colorbar()   
-    ax.plot(xdat1, ydat1, '.',color="tab:blue", alpha = 0.2)
+    ax.plot(xdat1, ydat1, '.',color="tab:blue", alpha = 0.4)
     
     hh, locx, locy = np.histogram2d(tb[:, 0], tb[:, 0] - tb[:, 1], 
                                     range=xyrange, bins=bins, density = True)
@@ -57,11 +73,18 @@ def plot_hist(ta, tb, figname = "contour2d.png", ax = None):
     ydat1 = ydat[ind][hhsub < thresh]
     #hh[hh < thresh] = np.nan # fill the areas with low density by NaNs
     
-    cs_gmi = ax.contour(np.flipud(hh.T),colors = "tab:red",
-                        extent=np.array(xyrange).flatten(), 
-                locator=ticker.LogLocator(),  origin='upper')
+    sigma = 0.1
+    hh = gaussian_filter(hh, sigma)
+    cs_gmi = ax.contour(np.flipud(hh.T), colors = "tab:red",
+                       #levels =  [0.5e-5, 1e-5, 1e-4, 0.5e-3, 1e-3, 0.5e-2, 1e-2, 0.05, 0.1], 
+                       #levels = [0.1]
+                       levels = 5,
+                       norm = normi,
+                       extent=np.array(xyrange).flatten(), 
+                  origin='upper')
+    ax.clabel(cs_gmi, inline=1, inline_spacing = 7, fontsize=18, fmt = fmt)
  #  plt.colorbar()   
-    ax.plot(xdat1, ydat1, '.',color="tab:red",  alpha = 0.2)
+    ax.plot(xdat1, ydat1, '.',color="tab:red",  alpha = 0.4)
     lines = [ cs.collections[0], cs_gmi.collections[0]]
 #    labels = ['CS1_neg','CS1_pos','CS2_neg','CS2_pos']
     ax.legend(lines, ["simulated", "observed"], loc = 'upper left')
