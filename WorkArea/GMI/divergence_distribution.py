@@ -54,7 +54,7 @@ def get_div2d(counts_b, counts_o):
     
 #%%    
     
-inpath_gmi   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2020/01/')
+inpath_gmi   = os.path.expanduser('~/Dendrite/SatData/GMI/L1B/2017/01/')
 # GMI simulations    
 gmifiles = glob.glob(os.path.join(inpath_gmi, "*/*.HDF5"))
 
