@@ -12,17 +12,17 @@ import pickle
 
 #%%
 def zonal_mean(lat, iwp, latbins):
-    
+
 
     bins     = np.digitize(lat, latbins)
-    
+
     nbins    = np.bincount(bins)
     iwp_mean = np.bincount(bins, iwp)
-    
+
     return iwp_mean, nbins
 
 
-inputfile = "jan2017_IWP_lpa1.nc"    
+inputfile = "jan2017_IWP_lpa1.nc"
 dataset = xarray.open_dataset(inputfile)
 giwp_mean = dataset.iwp_mean.data
 giwp0 = dataset.iwp0.data
@@ -30,14 +30,14 @@ glon = dataset.lon.data
 glat = dataset.lat.data
 dataset.close()
 
-inputfile = "2017_y95.nc"    
+inputfile = "2017_y95.nc"
 dataset = xarray.open_dataset(inputfile)
 y95 = dataset.y95.data
 dataset.close()
 
 
 
-inputfile = "2017_y5.nc"    
+inputfile = "2017_y5.nc"
 dataset = xarray.open_dataset(inputfile)
 y5 = dataset.y5.data
 dataset.close()
@@ -80,7 +80,7 @@ ziwp_95, ziwpc_95 = zonal_mean(glat[nanmask], y95[nanmask], latbins)
 
 fig, ax = plt.subplots(1, 1, figsize = [8, 8])
 
-ax.plot(ziwp[:-1]/ziwpc[:-1],latbins, 'r-', linewidth = 2.5, label = r"Q-IWP") 
+ax.plot(ziwp[:-1]/ziwpc[:-1],latbins, 'r-', linewidth = 2.5, label = r"Q-IWP")
 
 ax.plot(ziwp0[:-1]/ziwp0c[:-1], latbins, 'k', linewidth = 2.5, label = "GPROF")
 
@@ -88,15 +88,11 @@ ax.plot(ziwp0[:-1]/ziwp0c[:-1], latbins, 'k', linewidth = 2.5, label = "GPROF")
 ax.fill_betweenx( latbins, ziwp_95[:-1]/ziwpc_95[:-1], ziwp_5[:-1]/ziwpc_5[:-1],
                  alpha = 0.2 )
 
-#ax.plot(ziwp_5[:-1]/ziwpc_5[:-1],latbins, 'r-',  label = r"") 
+#ax.plot(ziwp_5[:-1]/ziwpc_5[:-1],latbins, 'r-',  label = r"")
 
-ax.plot(ziwp_d[:-1]/ziwp_dc[:-1],latbins, 'b-', linewidth = 2.5, label = "DARDAR") 
+ax.plot(ziwp_d[:-1]/ziwp_dc[:-1],latbins, 'b-', linewidth = 2.5, label = "DARDAR")
 
-#ax.plot(ziwp_95[:-1]/ziwpc_95[:-1],latbins, 'r-',  label = r"QRNN (99.0 kg m$^{-2}$)") 
-
-
-
-
+#ax.plot(ziwp_95[:-1]/ziwpc_95[:-1],latbins, 'r-',  label = r"QRNN (99.0 kg m$^{-2}$)")
 
 
 ax.set_ylabel("Latitude [deg]")
@@ -104,10 +100,3 @@ ax.set_xlabel(r"IWP [kg m$^{-2}$]")
 ax.legend()
 ax.grid("on", alpha = 0.3)
 fig.savefig("Figures/zonal_mean_jan_2017.pdf", bbox_inches = "tight")
-
-
-
-
-
-
-
