@@ -80,17 +80,24 @@ ziwp_95, ziwpc_95 = zonal_mean(glat[nanmask], y95[nanmask], latbins)
 
 fig, ax = plt.subplots(1, 1, figsize = [8, 8])
 
-ax.plot(ziwp[:-1]/ziwpc[:-1],latbins, 'r-', linewidth = 2.5, label = r"Q-IWP")
+ax.plot(ziwp[:-1]/ziwpc[:-1],latbins, '-', color = "tab:red", linewidth = 2.5,
+        label = r"Q-IWP")
 
 ax.plot(ziwp0[:-1]/ziwp0c[:-1], latbins, 'k', linewidth = 2.5, label = "GPROF")
 
 
 ax.fill_betweenx( latbins, ziwp_95[:-1]/ziwpc_95[:-1], ziwp_5[:-1]/ziwpc_5[:-1],
+                 color = "tab:red",
                  alpha = 0.2 )
 
 #ax.plot(ziwp_5[:-1]/ziwpc_5[:-1],latbins, 'r-',  label = r"")
 
-ax.plot(ziwp_d[:-1]/ziwp_dc[:-1],latbins, 'b-', linewidth = 2.5, label = "DARDAR")
+ax.plot(ziwp_d[:-1]/ziwp_dc[:-1],latbins, '-', linewidth = 2.5,
+        color = "tab:blue", label = "DARDAR")
+
+zm = ziwp_d[:-1]/ziwp_dc[:-1]
+ax.fill_betweenx(latbins, zm - zm * 0.4, zm + zm * 0.4, color = "tab:blue",
+                 alpha = 0.2)
 
 #ax.plot(ziwp_95[:-1]/ziwpc_95[:-1],latbins, 'r-',  label = r"QRNN (99.0 kg m$^{-2}$)")
 

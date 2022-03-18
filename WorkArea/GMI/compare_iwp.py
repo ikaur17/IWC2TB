@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
 #%% PDF of IWP
 
-    fig, ax = plt.subplots(1, 2, figsize = [16, 12])
+    fig, ax = plt.subplots(1, 2, figsize = [16, 10])
     ax = ax.ravel()
     ax[0].plot(iwp_mean_dardar[:], latbins, c = "tab:blue", linewidth = 2.0, label = "DARDAR")
     ax[0].plot(iwp_mean_gmi[:], latbins, c = "tab:red", linewidth = 2.0, label = "LPA + F07T")
@@ -257,7 +257,7 @@ if __name__ == "__main__":
                         color = "tab:blue", alpha = 0.2)
 
     ax[0].fill_betweenx(latbins, iwp_mean_gmi[:] - std_iwp,
-                            iwp_mean_dardar[:] + std_iwp,
+                            iwp_mean_gmi[:] + std_iwp,
                             color = "tab:red", alpha = 0.2)
 
 
@@ -283,8 +283,8 @@ if __name__ == "__main__":
 
     bin_center = 0.5 * (bins[1:] + bins[:-1])
 
-    ax[1].plot(bin_center, dhist, 'o-', color = "tab:blue", label = "DARDAR" )
-    ax[1].plot(bin_center, ghist, 'o-', color = "tab:red", label = "LPA + f07t" )
+    ax[1].plot(bin_center, dhist, 'o-', color = "tab:blue", label = "DARDAR", linewidth = 2.0 )
+    ax[1].plot(bin_center, ghist, 'o-', color = "tab:red", label = "LPA + f07t", linewidth = 2.0 )
 
     ax[1].set_xlabel(r"IWP [kg m$^{-2}$]")
     ax[1].set_ylabel("PDF")

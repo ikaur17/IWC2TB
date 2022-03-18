@@ -182,7 +182,7 @@ nratio   = nhist/nhist.max()
 ipr     = np.digitize(pr, prbins)
 icounts = np.bincount(ipr)
 
-ncounts = (icounts[1:] * nratio).astype(int)
+ncounts = (icounts[2:] * nratio).astype(int)
 
 ta_normal = []
 stype_normal = []
